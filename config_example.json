@@ -1,0 +1,7 @@
+{
+  "elevenLabsAPIKey": "key",
+  "voiceId": "id",
+  "translateFrom": "en-US",
+  "translateTo": "es",
+  "inputAudioPath": "audio.mp3"
+}

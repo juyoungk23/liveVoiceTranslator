@@ -3,9 +3,20 @@ import requests
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from pydub import AudioSegment
+import json
 
-translate_from = "en-US"
-translate_to = "es"
+#  get apiKey from config.json
+with open('config.json') as json_file:
+    data = json.load(json_file)
+    api_key = data['elevenLabsAPIKey']
+    voice_id = data['voiceId']
+    translate_from = data['translateFrom']
+    translate_to = data['translateTo']
+    input_audio_path = data['inputAudioPath']
+
+# Set the path to your Google Cloud credentials
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'serviceAccount.json'
+
 
 def transcribe_audio(speech_file, lang=translate_from):
     """Transcribe the given audio file using Google Cloud Speech."""
@@ -80,24 +91,15 @@ def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3")
         print(f"Error: {response.status_code}")
         print(response.text)
 
-# Set the path to your Google Cloud credentials
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'serviceAccount.json'
-
-# Path to your audio file (MP3 or M4A)
-audio_file = "audio.mp3"  # Change this path
-
 # Convert audio to WAV format
-converted_audio = convert_audio(audio_file)
+converted_audio = convert_audio(input_audio_path)
 
 # Transcribe and translate
 transcribed_text = transcribe_audio(converted_audio)
 translated_text = translate_text(transcribed_text, translate_to)  # Translate to english
 
 # Generate voice file using Eleven Labs API
-juyoung_voice_id = "mQEk9lYcxDbbsCuu6XQJ"
-jess_voice_id = "gtVxtnGdfqnAGWQeqpPm"
-api_key = "de6833665494f852d0e267a74afde1ec"
-generate_voice_file(translated_text, jess_voice_id, api_key, "translated_voice.mp3")
+generate_voice_file(translated_text, voice_id, api_key, "translated_voice.mp3")
 
 print(f"Original Text: {transcribed_text}")
 print(f"Translated Text: {translated_text}")
