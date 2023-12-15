@@ -10,7 +10,7 @@
   let voice = '';
 
   // Placeholder URL for the audio blob
-  let audioUrl = writable('audio.mp3'); 
+  let audioUrl = writable(''); 
   let serverUrl = 'https://api.thevoicetranslator.com/process-audio';
   // let audioUrl = writable(''); // Store the URL for the audio blob
 
