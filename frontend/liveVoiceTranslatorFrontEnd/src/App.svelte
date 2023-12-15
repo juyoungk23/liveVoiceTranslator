@@ -97,13 +97,12 @@ function stopRecording() {
   async function handleSubmit() {
     isSubmitting = true; // Disable the button and change text when submission starts
     console.log('Submitting form...');
-    outputLanguage = outputLanguage.substring(0,2);
     console.log(`Input Language: ${inputLanguage}, Output Language: ${outputLanguage}`);
 
     const formData = new FormData();
     formData.append('audio', audioFile);
     formData.append('input_lang', inputLanguage);
-    formData.append('output_lang', outputLanguage);
+    formData.append('output_lang', outputLanguage.substring(0,2));
     formData.append('voice', voice);
 
     console.log('Sending request to server...');
