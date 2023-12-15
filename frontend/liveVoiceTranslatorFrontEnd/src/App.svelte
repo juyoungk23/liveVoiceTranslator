@@ -11,7 +11,7 @@
 
   // Placeholder URL for the audio blob
   let audioUrl = writable('audio.mp3'); 
-  let serverUrl = 'https://api.thevoicetranslator.com:5000/process-audio';
+  let serverUrl = 'https://api.thevoicetranslator.com/process-audio';
   // let audioUrl = writable(''); // Store the URL for the audio blob
 
   let isRecording = false;
