@@ -11,7 +11,7 @@
 
   // Placeholder URL for the audio blob
   let audioUrl = writable('audio.mp3'); 
-  let serverUrl = 'http://34.94.223.120:5000/process-audio';
+  let serverUrl = 'https://34.94.223.120:5000/process-audio';
   // let audioUrl = writable(''); // Store the URL for the audio blob
 
   let isRecording = false;
