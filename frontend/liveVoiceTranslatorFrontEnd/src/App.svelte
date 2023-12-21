@@ -23,7 +23,7 @@
   let countdownInterval; // Declare outside to access in both start and stop functions
 
   const voices = [
-    {label: 'Juyoung'},{label: 'Boyeon'},{label: 'Jessica'}, {label: 'Aditi'}, {label: 'Nimal'}, {label: "Jane"}
+    {label: 'Juyoung'},{label: 'Boyeon'},{label: 'Jessica'}, {label: 'Aditi'}, {label: 'Nimal'}, {label: "Jane"}, {label: "Obama"}, {label: "Trump"}
   ]
 
    const languages = [
