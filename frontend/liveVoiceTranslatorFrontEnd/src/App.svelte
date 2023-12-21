@@ -17,7 +17,7 @@
   let isRecording = false;
   let audioRecorder;
   let recordedAudio;
-  let mode = 'upload'; // Possible values: 'upload', 'record'
+  let mode = 'record'; // Possible values: 'upload', 'record'
 
 
   const voices = [
@@ -136,8 +136,8 @@ function stopRecording() {
 
   <!-- Tab-like buttons for mode selection -->
   <div class="mode-selector">
-    <button class={mode === 'upload' ? 'active' : ''} on:click={() => mode = 'upload'}>Upload Audio</button>
     <button class={mode === 'record' ? 'active' : ''} on:click={() => mode = 'record'}>Record Audio</button>
+    <button class={mode === 'upload' ? 'active' : ''} on:click={() => mode = 'upload'}>Upload Audio</button>
   </div>
 
   <!-- Upload Audio -->
