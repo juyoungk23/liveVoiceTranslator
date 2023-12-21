@@ -21,7 +21,7 @@
 
 
   const voices = [
-    {label: 'Juyoung'},{label: 'Jessica'}, {label: 'Aditi'}, {label: 'Nimal'}, {label: "Jane"}
+    {label: 'Juyoung'},{label: 'Boyeon'},{label: 'Jessica'}, {label: 'Aditi'}, {label: 'Nimal'}, {label: "Jane"}
   ]
 
    const languages = [
