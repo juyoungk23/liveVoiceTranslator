@@ -19,6 +19,8 @@
   let recordedAudio;
   let mode = 'record'; // Possible values: 'upload', 'record'
 
+  let countdown = writable(15); // Reactive variable for the countdown
+  let countdownInterval; // Declare outside to access in both start and stop functions
 
   const voices = [
     {label: 'Juyoung'},{label: 'Boyeon'},{label: 'Jessica'}, {label: 'Aditi'}, {label: 'Nimal'}, {label: "Jane"}
@@ -79,6 +81,17 @@ async function startRecording() {
     });
 
     isRecording = true;
+      countdown.set(15); // Set initial countdown value
+      countdownInterval = setInterval(() => {
+        countdown.update(n => {
+          if (n === 0) {
+            clearInterval(countdownInterval);
+            stopRecording();
+            return 0;
+          }
+          return n - 1;
+        });
+      }, 1000);
 
     // Automatically stop recording after 15 seconds
     recordingTimeout = setTimeout(stopRecording, 15000);
@@ -88,12 +101,14 @@ async function startRecording() {
 }
 
 function stopRecording() {
-  if (audioRecorder) {
-    audioRecorder.stop();
-    clearTimeout(recordingTimeout);
-    isRecording = false;
+    if (audioRecorder) {
+      audioRecorder.stop();
+      clearTimeout(recordingTimeout);
+      clearInterval(countdownInterval); // Clear the interval
+      isRecording = false;
+      countdown.set(15); // Reset countdown
+    }
   }
-}
   async function handleSubmit() {
     isSubmitting = true; // Disable the button and change text when submission starts
     console.log('Submitting form...');
@@ -151,12 +166,19 @@ function stopRecording() {
 
 <!-- Record Audio -->
 {#if mode === 'record'}
-  <div>
-    <button on:click={() => (isRecording ? stopRecording() : startRecording())}>
-      {isRecording ? 'Stop Recording' : 'Start Recording'}
-    </button>
+<div>
+  <button
+    on:click={() => (isRecording ? stopRecording() : startRecording())}
+    style="background-color: {isRecording ? 'red' : 'green'}"
+  >
+    {isRecording ? 'Stop Recording' : 'Start Recording'}
+  </button>
+  {#if isRecording}
+    <p>Recording... <span>{$countdown}</span> seconds left</p>
+  {:else}
     <p>Can record up to 15 seconds...</p>
-  </div>
+  {/if}
+</div>
 {/if}
 
   <div>
@@ -187,9 +209,10 @@ function stopRecording() {
   </div>
 
 
-  <button on:click={handleSubmit} disabled={isSubmitting}>
+  <button on:click={handleSubmit} disabled={isSubmitting || isRecording}>
     {isSubmitting ? 'Generating...' : 'Submit'}
   </button>
+  
 
   <!-- Audio Player -->
   <div class="audio-player">
@@ -266,6 +289,15 @@ function stopRecording() {
     margin-right: 0;
   }
 
-
+  button[style*="background-color: red"] {
+    /* Red button styles for recording */
+    background-color: red;
+    color: white;
+  }
+  button[style*="background-color: green"] {
+    /* Green button styles for ready to record */
+    background-color: green;
+    color: white;
+  }
 
 </style>
