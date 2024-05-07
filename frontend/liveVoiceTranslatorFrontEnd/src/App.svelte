@@ -114,12 +114,12 @@
     }
   }
 
-  // Function to play audio immediately when set
-  function playAudio() {
-    const audioPlayer = document.querySelector("audio");
-    if (audioPlayer) {
-      audioPlayer.play();
-    }
+  // Function to play audio immediately when metadata is loaded
+  function playAudio(event) {
+    event.target.play().catch((error) => {
+      console.error("Error playing audio:", error.message);
+      // Handle the error gracefully, perhaps by showing a message to the user
+    });
   }
 
   async function handleSubmit() {
@@ -140,7 +140,6 @@
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         audioUrl.set(url);
-        playAudio(); // Play the audio as soon as it's set
       } else {
         console.error("Server error:", response);
       }
@@ -231,10 +230,9 @@
     {isSubmitting ? "Generating..." : "Submit"}
   </button>
 
-  <!-- Audio Player -->
   <div class="audio-player">
     {#if $audioUrl}
-      <audio src={$audioUrl} controls on:play={playAudio}></audio>
+      <audio src={$audioUrl} controls on:loadedmetadata={playAudio}></audio>
     {/if}
   </div>
 </div>
