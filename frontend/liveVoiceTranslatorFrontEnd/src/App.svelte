@@ -26,7 +26,6 @@
     { label: "Juyoung" },
     { label: "Jessica" },
     { label: "Aditi" },
-    { label: "Nimal" },
     { label: "Jane" },
   ];
 
