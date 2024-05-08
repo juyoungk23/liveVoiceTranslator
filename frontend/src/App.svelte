@@ -1,34 +1,45 @@
 <script>
   import { writable } from "svelte/store";
   import { voices, languages } from "./config.js";
+
   let audioFile;
-  let isSubmitting = false;
+  let isSubmitting = writable(false);
   let serverUrl = "https://api.thevoicetranslator.com/process-audio";
   let isRecording = false;
   let audioRecorder;
-  let mode = writable("person1"); // Default to person1
+  let mode = writable("person1");
 
   let audioUrl = writable("");
+  let isLoading = writable(false);
 
   let countdownDuration = 30;
   let countdown = writable(countdownDuration);
   let countdownInterval;
+  let hasStartedRecording = writable(false);
 
-  // Person specific settings
   let settings = {
     person1: { inputLanguage: "en-US", outputLanguage: "es", voice: "" },
     person2: { inputLanguage: "en-US", outputLanguage: "es", voice: "" },
   };
 
+  // Function to play audio immediately when metadata is loaded
+  function playAudio(event) {
+    if (event.target.getAttribute("data-playable") === "true") {
+      event.target.play().catch((error) => {
+        console.error("Error playing audio:", error.message);
+      });
+    }
+  }
+
   function resetAudio() {
     audioFile = undefined;
     audioUrl.set("");
+    hasStartedRecording.set(false);
     if (isRecording) {
       stopRecording();
     }
   }
 
-  // Update the mode switch with a check to reset audio
   function switchMode(newMode) {
     if (!isRecording && $mode !== newMode) {
       resetAudio();
@@ -56,10 +67,11 @@
       audioFile = new File([audioBlob], "recordedAudio.wav", {
         type: "audio/wav",
       });
-      audioUrl.set(URL.createObjectURL(audioBlob));
+      audioUrl.set(URL.createObjectURL(audioBlob)); // Local playback URL, not for autoplay
     });
 
     isRecording = true;
+    hasStartedRecording.set(true);
     countdown.set(countdownDuration);
     countdownInterval = setInterval(() => {
       countdown.update((n) => (n > 0 ? n - 1 : 0));
@@ -80,7 +92,8 @@
   }
 
   async function handleSubmit() {
-    isSubmitting = true;
+    isSubmitting.set(true);
+    isLoading.set(true);
     let currentSettings =
       $mode === "person1" ? settings.person1 : settings.person2;
     const formData = new FormData();
@@ -92,11 +105,6 @@
     );
     formData.append("voice", currentSettings.voice);
 
-    // Debugging FormData contents
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
     try {
       const response = await fetch(serverUrl, {
         method: "POST",
@@ -106,14 +114,17 @@
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         audioUrl.set(url);
+        document
+          .querySelector(".audio-player audio")
+          .setAttribute("data-playable", "true");
       } else {
         console.error("Server error:", response);
       }
-      isSubmitting = false;
     } catch (error) {
       console.error("Failed to submit audio:", error);
-      isSubmitting = false;
     }
+    isSubmitting.set(false);
+    isLoading.set(false);
   }
 </script>
 
@@ -122,18 +133,17 @@
   <div class="mode-selector">
     <button
       class:active={$mode === "person1"}
-      on:click={() => switchMode("person1")}>Person 1</button
+      on:click={() => switchMode("person1")}>Doctor</button
     >
     <button
       class:active={$mode === "person2"}
-      on:click={() => switchMode("person2")}>Person 2</button
+      on:click={() => switchMode("person2")}>Patient</button
     >
   </div>
 
   <div class="settings">
     {#each Object.entries(settings) as [person, config]}
-      <div class={`column ${$mode === person ? "active" : ""}`}>
-        <h2>{person}</h2>
+      <div class="column">
         <div>
           <label for={`${person}-inputLanguage`}>Input Language:</label>
           <select
@@ -167,21 +177,35 @@
       </div>
     {/each}
   </div>
+
   <button
     on:click={isRecording ? stopRecording : startRecording}
     class:record-button={true}
     class:red={isRecording}
-    disabled={isSubmitting}
+    disabled={$isSubmitting}
   >
     {isRecording ? "Stop Recording" : "Start Recording"}
   </button>
-  <p>Recording... <span>{$countdown}</span> seconds left</p>
-  <button on:click={handleSubmit} disabled={isSubmitting || isRecording}>
-    {isSubmitting ? "Submitting..." : "Submit"}
+  <p>
+    {$hasStartedRecording
+      ? `Recording... ${$countdown} seconds left`
+      : "Please begin recording"}
+  </p>
+  <button
+    on:click={handleSubmit}
+    disabled={!audioFile || $isSubmitting || isRecording}
+    class:loading={$isLoading || $isSubmitting}
+  >
+    {$isLoading || $isSubmitting
+      ? "Loading..."
+      : $hasStartedRecording
+        ? "Submit"
+        : "Submit"}
   </button>
+
   {#if $audioUrl}
     <div class="audio-player">
-      <audio src={$audioUrl} controls></audio>
+      <audio src={$audioUrl} controls on:loadedmetadata={playAudio}></audio>
     </div>
   {/if}
 </div>
@@ -210,6 +234,10 @@
     margin-bottom: 20px;
   }
 
+  .loading {
+    background-color: #ccc; /* Grey out the button when loading */
+  }
+
   .mode-selector {
     display: flex;
     justify-content: center;
@@ -234,18 +262,15 @@
 
   .settings {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around; /* Ensures columns are evenly spaced */
     margin: 20px 0;
   }
 
   .column {
-    display: none;
-    flex-basis: 48%;
+    flex-basis: 48%; /* Adjust based on layout preference */
+    display: block; /* Always show the column */
   }
 
-  .column.active {
-    display: block;
-  }
   .record-button.red {
     background-color: red; /* Red color when recording */
   }
