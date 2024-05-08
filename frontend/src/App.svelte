@@ -213,7 +213,7 @@
 <style>
   :global(body) {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #fbf6f6;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
