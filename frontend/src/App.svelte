@@ -20,6 +20,22 @@
     person2: { inputLanguage: "en-US", outputLanguage: "es", voice: "" },
   };
 
+  function resetAudio() {
+    audioFile = undefined;
+    audioUrl.set("");
+    if (isRecording) {
+      stopRecording();
+    }
+  }
+
+  // Update the mode switch with a check to reset audio
+  function switchMode(newMode) {
+    if (!isRecording && $mode !== newMode) {
+      resetAudio();
+      $mode = newMode;
+    }
+  }
+
   async function startRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error("Recording not supported");
@@ -106,17 +122,14 @@
   <div class="mode-selector">
     <button
       class:active={$mode === "person1"}
-      on:click={() => {
-        if (!isRecording) $mode = "person1";
-      }}>Person 1</button
+      on:click={() => switchMode("person1")}>Person 1</button
     >
     <button
       class:active={$mode === "person2"}
-      on:click={() => {
-        if (!isRecording) $mode = "person2";
-      }}>Person 2</button
+      on:click={() => switchMode("person2")}>Person 2</button
     >
   </div>
+
   <div class="settings">
     {#each Object.entries(settings) as [person, config]}
       <div class={`column ${$mode === person ? "active" : ""}`}>
