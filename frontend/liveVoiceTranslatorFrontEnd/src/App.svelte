@@ -1,141 +1,91 @@
 <script>
-  // @ts-nocheck
-
   import { writable } from "svelte/store";
-
-  let isSubmitting = false;
+  import { voices, languages } from "./config.js";
   let audioFile;
-  let inputLanguage = "en-US";
-  let outputLanguage = "es";
-  let voice = "";
-
-  // Placeholder URL for the audio blob
-  let audioUrl = writable("");
+  let isSubmitting = false;
   let serverUrl = "https://api.thevoicetranslator.com/process-audio";
-  // let audioUrl = writable(''); // Store the URL for the audio blob
-
   let isRecording = false;
   let audioRecorder;
-  let recordedAudio;
-  let mode = "record"; // Possible values: 'upload', 'record'
+  let mode = writable("person1"); // Default to person1
 
-  let countdown = writable(15); // Reactive variable for the countdown
-  let countdownInterval; // Declare outside to access in both start and stop functions
+  let audioUrl = writable("");
 
-  const voices = [
-    { label: "Juyoung" },
-    { label: "Jessica" },
-    { label: "Aditi" },
-    { label: "Jane" },
-  ];
+  let countdownDuration = 30;
+  let countdown = writable(countdownDuration);
+  let countdownInterval;
 
-  const languages = [
-    { label: "Chinese", value: "zh-CN" },
-    { label: "Korean", value: "ko-KR" },
-    { label: "Dutch", value: "nl-NL" },
-    { label: "Turkish", value: "tr-TR" },
-    { label: "Swedish", value: "sv-SE" },
-    { label: "Indonesian", value: "id-ID" },
-    { label: "Filipino", value: "fil-PH" },
-    { label: "Japanese", value: "ja-JP" },
-    { label: "Ukrainian", value: "uk-UA" },
-    { label: "Greek", value: "el-GR" },
-    { label: "Czech", value: "cs-CZ" },
-    { label: "Finnish", value: "fi-FI" },
-    { label: "Romanian", value: "ro-RO" },
-    { label: "Russian", value: "ru-RU" },
-    { label: "Danish", value: "da-DK" },
-    { label: "Bulgarian", value: "bg-BG" },
-    { label: "Malay", value: "ms-MY" },
-    { label: "Slovak", value: "sk-SK" },
-    { label: "Croatian", value: "hr-HR" },
-    { label: "Classic Arabic", value: "ar-SA" },
-    { label: "Tamil", value: "ta-IN" },
-    { label: "English", value: "en-US" },
-    { label: "Polish", value: "pl-PL" },
-    { label: "German", value: "de-DE" },
-    { label: "Spanish", value: "es-ES" },
-    { label: "French", value: "fr-FR" },
-    { label: "Italian", value: "it-IT" },
-    { label: "Hindi", value: "hi-IN" },
-    { label: "Portuguese", value: "pt-BR" },
-  ];
-
-  let recordingTimeout;
+  // Person specific settings
+  let settings = {
+    person1: { inputLanguage: "en-US", outputLanguage: "es", voice: "" },
+    person2: { inputLanguage: "en-US", outputLanguage: "es", voice: "" },
+  };
 
   async function startRecording() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      audioRecorder = mediaRecorder;
-      mediaRecorder.start();
-
-      const audioChunks = [];
-      mediaRecorder.addEventListener("dataavailable", (event) => {
-        audioChunks.push(event.data);
-      });
-
-      mediaRecorder.addEventListener("stop", () => {
-        const audioBlob = new Blob(audioChunks.slice(0, 15)); // Trim to first 15 seconds
-        const audioUrl = URL.createObjectURL(audioBlob);
-        recordedAudio = new File([audioBlob], "recordedAudio.wav", {
-          type: "audio/wav",
-        });
-        audioFile = recordedAudio; // Set the recorded audio as the file to be submitted
-      });
-
-      isRecording = true;
-      countdown.set(15); // Set initial countdown value
-      countdownInterval = setInterval(() => {
-        countdown.update((n) => {
-          if (n === 0) {
-            clearInterval(countdownInterval);
-            stopRecording();
-            return 0;
-          }
-          return n - 1;
-        });
-      }, 1000);
-
-      // Automatically stop recording after 15 seconds
-      recordingTimeout = setTimeout(stopRecording, 15000);
-    } else {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error("Recording not supported");
+      return;
     }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+    audioRecorder = mediaRecorder;
+    mediaRecorder.start();
+
+    let audioChunks = [];
+    mediaRecorder.addEventListener("dataavailable", (event) => {
+      audioChunks.push(event.data);
+    });
+
+    mediaRecorder.addEventListener("stop", () => {
+      const audioBlob = new Blob(audioChunks);
+      audioFile = new File([audioBlob], "recordedAudio.wav", {
+        type: "audio/wav",
+      });
+      audioUrl.set(URL.createObjectURL(audioBlob));
+    });
+
+    isRecording = true;
+    countdown.set(countdownDuration);
+    countdownInterval = setInterval(() => {
+      countdown.update((n) => (n > 0 ? n - 1 : 0));
+    }, 1000);
+
+    setTimeout(() => {
+      if (isRecording) stopRecording();
+    }, countdownDuration * 1000);
   }
 
   function stopRecording() {
     if (audioRecorder) {
       audioRecorder.stop();
-      clearTimeout(recordingTimeout);
-      clearInterval(countdownInterval); // Clear the interval
+      clearInterval(countdownInterval);
       isRecording = false;
-      countdown.set(15); // Reset countdown
+      countdown.set(countdownDuration);
     }
-  }
-
-  // Function to play audio immediately when metadata is loaded
-  function playAudio(event) {
-    event.target.play().catch((error) => {
-      console.error("Error playing audio:", error.message);
-      // Handle the error gracefully, perhaps by showing a message to the user
-    });
   }
 
   async function handleSubmit() {
     isSubmitting = true;
+    let currentSettings =
+      $mode === "person1" ? settings.person1 : settings.person2;
     const formData = new FormData();
     formData.append("audio", audioFile);
-    formData.append("input_lang", inputLanguage);
-    formData.append("output_lang", outputLanguage.substring(0, 2));
-    formData.append("voice", voice);
+    formData.append("input_lang", currentSettings.inputLanguage);
+    formData.append(
+      "output_lang",
+      currentSettings.outputLanguage.substring(0, 2)
+    );
+    formData.append("voice", currentSettings.voice);
+
+    // Debugging FormData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
     try {
       const response = await fetch(serverUrl, {
         method: "POST",
         body: formData,
       });
-
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
@@ -143,143 +93,108 @@
       } else {
         console.error("Server error:", response);
       }
+      isSubmitting = false;
     } catch (error) {
-      console.error("Error sending request to server:", error);
+      console.error("Failed to submit audio:", error);
+      isSubmitting = false;
     }
-
-    isSubmitting = false;
   }
 </script>
 
 <div class="container">
   <h1>Audio Translation App</h1>
-
-  <!-- Tab-like buttons for mode selection -->
   <div class="mode-selector">
     <button
-      class={mode === "record" ? "active" : ""}
-      on:click={() => (mode = "record")}>Record Audio</button
+      class:active={$mode === "person1"}
+      on:click={() => {
+        if (!isRecording) $mode = "person1";
+      }}>Person 1</button
     >
     <button
-      class={mode === "upload" ? "active" : ""}
-      on:click={() => (mode = "upload")}>Upload Audio</button
+      class:active={$mode === "person2"}
+      on:click={() => {
+        if (!isRecording) $mode = "person2";
+      }}>Person 2</button
     >
   </div>
-
-  <!-- Upload Audio -->
-  {#if mode === "upload"}
-    <div>
-      <label for="audioFile">Upload Audio:</label>
-      <input
-        type="file"
-        accept="audio/*"
-        on:change={(e) => {
-          audioFile = e.target.files[0];
-          console.log("Audio file selected:", audioFile.name);
-        }}
-      />
-      <p>File length max 30 seconds...</p>
-    </div>
-  {/if}
-
-  <!-- Record Audio -->
-  {#if mode === "record"}
-    <div>
-      <button
-        on:click={() => (isRecording ? stopRecording() : startRecording())}
-        style="background-color: {isRecording ? 'red' : 'green'}"
-      >
-        {isRecording ? "Stop Recording" : "Start Recording"}
-      </button>
-      {#if isRecording}
-        <p>Recording... <span>{$countdown}</span> seconds left</p>
-      {:else}
-        <p>Can record up to 15 seconds...</p>
-      {/if}
-    </div>
-  {/if}
-
-  <div>
-    <label for="inputLanguage">Input Language:</label>
-    <select bind:value={inputLanguage}>
-      {#each languages as language}
-        <option value={language.value}>{language.label}</option>
-      {/each}
-    </select>
+  <div class="settings">
+    {#each Object.entries(settings) as [person, config]}
+      <div class={`column ${$mode === person ? "active" : ""}`}>
+        <h2>{person}</h2>
+        <div>
+          <label for={`${person}-inputLanguage`}>Input Language:</label>
+          <select
+            id={`${person}-inputLanguage`}
+            bind:value={config.inputLanguage}
+          >
+            {#each languages as language}
+              <option value={language.value}>{language.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div>
+          <label for={`${person}-outputLanguage`}>Output Language:</label>
+          <select
+            id={`${person}-outputLanguage`}
+            bind:value={config.outputLanguage}
+          >
+            {#each languages as language}
+              <option value={language.value}>{language.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div>
+          <label for={`${person}-voice`}>Voice:</label>
+          <select id={`${person}-voice`} bind:value={config.voice}>
+            {#each voices as voice}
+              <option value={voice.label}>{voice.label}</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+    {/each}
   </div>
-
-  <div>
-    <label for="outputLanguage">Output Language:</label>
-    <select bind:value={outputLanguage}>
-      {#each languages as language}
-        <option value={language.value}>{language.label}</option>
-      {/each}
-    </select>
-  </div>
-
-  <div>
-    <label for="voice">Voice:</label>
-    <select bind:value={voice}>
-      {#each voices as voice}
-        <option value={voice.label}>{voice.label}</option>
-      {/each}
-    </select>
-  </div>
-
-  <button on:click={handleSubmit} disabled={isSubmitting || isRecording}>
-    {isSubmitting ? "Generating..." : "Submit"}
+  <button
+    on:click={isRecording ? stopRecording : startRecording}
+    class:record-button={true}
+    class:red={isRecording}
+    disabled={isSubmitting}
+  >
+    {isRecording ? "Stop Recording" : "Start Recording"}
   </button>
-
-  <div class="audio-player">
-    {#if $audioUrl}
-      <audio src={$audioUrl} controls on:loadedmetadata={playAudio}></audio>
-    {/if}
-  </div>
+  <p>Recording... <span>{$countdown}</span> seconds left</p>
+  <button on:click={handleSubmit} disabled={isSubmitting || isRecording}>
+    {isSubmitting ? "Submitting..." : "Submit"}
+  </button>
+  {#if $audioUrl}
+    <div class="audio-player">
+      <audio src={$audioUrl} controls></audio>
+    </div>
+  {/if}
 </div>
 
 <style>
   :global(body) {
-    font-family: Arial, sans-serif;
-    background-color: #f8f8f8;
-    color: #333;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  button:disabled {
-    background-color: #cccccc; /* Gray background */
-    color: #666666; /* Darker text to indicate it's disabled */
-    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+  .container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
   }
 
   h1 {
-    color: #ff4500; /* International Orange */
-  }
-  select,
-  input[type="file"],
-  button {
-    display: block;
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  button {
-    background-color: #ff4500;
-    color: white;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #e03d00;
-  }
-  .container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    text-align: center;
-  }
-  .audio-player {
-    margin-top: 20px;
+    color: #333;
+    margin-bottom: 20px;
   }
 
   .mode-selector {
@@ -292,27 +207,67 @@
     background-color: #ddd;
     border: none;
     padding: 10px 20px;
-    margin-right: 5px;
+    margin: 0 10px;
+    font-size: 16px;
     cursor: pointer;
+    border-radius: 20px;
+    transition: background-color 0.3s;
   }
 
   .mode-selector button.active {
-    background-color: #ff4500;
+    background-color: #0056b3;
     color: white;
   }
 
-  .mode-selector button:last-child {
-    margin-right: 0;
+  .settings {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
   }
 
-  button[style*="background-color: red"] {
-    /* Red button styles for recording */
-    background-color: red;
+  .column {
+    display: none;
+    flex-basis: 48%;
+  }
+
+  .column.active {
+    display: block;
+  }
+  .record-button.red {
+    background-color: red; /* Red color when recording */
+  }
+
+  .record-button {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: green; /* Green color when ready to record */
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    outline: none;
+  }
+  button,
+  select {
+    padding: 10px;
+    margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+
+  button:hover:not(:disabled) {
+    background-color: #004085;
     color: white;
   }
-  button[style*="background-color: green"] {
-    /* Green button styles for ready to record */
-    background-color: green;
-    color: white;
+
+  .audio-player {
+    margin-top: 20px;
+  }
+
+  p {
+    margin-top: 10px;
   }
 </style>
