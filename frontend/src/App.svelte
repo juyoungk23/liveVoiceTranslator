@@ -213,7 +213,7 @@
 <style>
   :global(body) {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #fbf6f6;
+    background-color: #fbf6f6; /* Light background color */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -223,15 +223,16 @@
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #fff; /* White background for the container */
     border-radius: 8px;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
   }
 
-  h1 {
-    color: #333;
-    margin-bottom: 20px;
+  h1,
+  label {
+    /* Ensure headers and labels are clearly visible */
+    color: #333; /* Dark grey text color for better readability */
   }
 
   .loading {

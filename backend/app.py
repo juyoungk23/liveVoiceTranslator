@@ -7,12 +7,12 @@ from pydub import AudioSegment
 import logging
 from logging.handlers import RotatingFileHandler
 from pydub.exceptions import CouldntDecodeError
-
 from google.cloud import secretmanager
 from google.oauth2 import service_account
 from google.cloud import speech
 from google.cloud import translate_v3 as translate
 import json
+import time
 
 app = Flask(__name__)
 CORS(app)  # This enables CORS for all routes
@@ -231,6 +231,7 @@ def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3")
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
+    start_time = time.time()
     
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
@@ -239,14 +240,10 @@ def process_audio():
     if audio_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    # Extract language codes from the request form data
+    # Extract from the request form data
     input_lang = request.form.get('input_lang', 'en-US')  # Default to 'en-US' if not provided
     output_lang = request.form.get('output_lang', 'es')  # Default to 'es' if not provided
-    
-    # Extract voice label from the request form data
     voice_label = request.form.get('voice', 'Juyoung')  # Default to a default voice label if not provided
-
-    # Get the corresponding voice ID from the config
     voice_id = voices.get(voice_label, 'w0FTld3VgsXqUaNGNRnY')  # Use a default voice ID if the label is not found
     
     app.logger.debug(f"------------------------------------------")
@@ -282,7 +279,9 @@ def process_audio():
         voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
-
+        
+        app.logger.debug(f"Total processing time: {time.time() - start_time} seconds")
+        
         return send_file(voice_file_path, as_attachment=True)
     except Exception as e:
         app.logger.error(f"Unhandled exception: {e}")
