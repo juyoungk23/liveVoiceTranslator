@@ -4,6 +4,10 @@ FROM python:3.8-slim
 # Set the working directory to /app
 WORKDIR /app
 
+# Update system packages and install ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*  # Clean up to reduce layer size
+
 # Copy the current directory contents into the container at /app
 ADD . /app
 
