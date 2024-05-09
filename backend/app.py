@@ -182,23 +182,25 @@ def convert_audio_to_wav(input_file):
 
 def translate_text(text, target_language, source_language=None, model="nmt"):
     """Translate the given text to the target language using Google Cloud Translation v3."""
-    client = create_translate_client() 
-    
-    # Use the global location for the default NMT model
-    parent = client.location_path('your-project-id', 'global')
+    client = create_translate_client()
+
+    # Construct the location path for the Translation service
+    project_id = "livevoicetranslation"  # Ensure you replace 'your-project-id' with your actual Google Cloud project ID
+    location = "us-central1"
+    parent = f"projects/{project_id}/locations/{location}"
 
     # Prepare the request body with optional parameters
     request = {
         "parent": parent,
         "contents": [text],
         "mime_type": "text/plain",  # Mime types: "text/plain" or "text/html"
-        "source_language_code": source_language if source_language else "",
+        "source_language_code": source_language,
         "target_language_code": target_language,
-        "model": f"projects/your-project-id/locations/global/models/general/{model}"
+        "model": model  # Adjust model ID if necessary, depending on your setup
     }
 
     # Perform the translation request
-    response = client.translate_text(request)
+    response = client.translate_text(request=request)
     if response.translations:
         return response.translations[0].translated_text
     return None
