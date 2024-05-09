@@ -41,7 +41,7 @@ def get_credentials():
 
     # Build the client and request object
     client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+    name = f"projects/{project_id}/secrets/{secret_id}"
     response = client.access_secret_version(request={"name": name})
 
     # Load credentials from the secret payload
@@ -281,7 +281,7 @@ def process_audio():
             return jsonify({"error": "Voice generation failed"}), 500
         
         app.logger.debug(f"Total processing time: {time.time() - start_time} seconds")
-        
+
         return send_file(voice_file_path, as_attachment=True)
     except Exception as e:
         app.logger.error(f"Unhandled exception: {e}")
