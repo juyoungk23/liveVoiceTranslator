@@ -181,29 +181,33 @@ def convert_audio_to_wav(input_file):
     return output_file
 
 def translate_text(text, target_language, source_language=None, model="nmt"):
-    """Translate the given text to the target language using Google Cloud Translation v3."""
     client = create_translate_client()
 
-    # Construct the location path for the Translation service
-    project_id = "livevoicetranslation"  # Ensure you replace 'your-project-id' with your actual Google Cloud project ID
-    location = "us-central1"
+    project_id = "livevoicetranslation"  # Replace with your actual Google Cloud project ID
+    location = "global"  # 'global' can be used for standard models; specify other regions if using a custom model
+
     parent = f"projects/{project_id}/locations/{location}"
 
-    # Prepare the request body with optional parameters
+    # You can specify a model if you're using a custom model; otherwise, you can omit this for the default
+    if model:
+        model_path = f"projects/{project_id}/locations/{location}/models/{model}"
+    else:
+        model_path = None
+
     request = {
         "parent": parent,
         "contents": [text],
         "mime_type": "text/plain",  # Mime types: "text/plain" or "text/html"
         "source_language_code": source_language,
         "target_language_code": target_language,
-        "model": model  # Adjust model ID if necessary, depending on your setup
+        "model": model_path
     }
 
-    # Perform the translation request
     response = client.translate_text(request=request)
     if response.translations:
         return response.translations[0].translated_text
     return None
+
 
 def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3"):
     """Generate a voice file using Eleven Labs API."""
