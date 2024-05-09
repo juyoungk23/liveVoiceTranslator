@@ -209,7 +209,7 @@ def process_audio():
     voice_label = request.form.get('voice', 'Juyoung')  # Default to a default voice label if not provided
 
     # Get the corresponding voice ID from the config
-    voice_id = voices.get(voice_label, 'mQEk9lYcxDbbsCuu6XQJ')  # Use a default voice ID if the label is not found
+    voice_id = voices.get(voice_label, 'w0FTld3VgsXqUaNGNRnY')  # Use a default voice ID if the label is not found
     
     app.logger.debug(f"------------------------------------------")
     app.logger.debug(f"Received Request! Form data: ")

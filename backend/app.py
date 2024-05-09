@@ -1,15 +1,18 @@
 from flask import Flask, request, jsonify, send_file
 import os
-import json
 import requests
-from google.cloud import speech
-from google.cloud import translate_v2 as translate
 from flask_cors import CORS
 from pydub.utils import mediainfo
 from pydub import AudioSegment 
 import logging
 from logging.handlers import RotatingFileHandler
 from pydub.exceptions import CouldntDecodeError
+
+from google.cloud import secretmanager
+from google.oauth2 import service_account
+from google.cloud import speech
+from google.cloud import translate_v3 as translate
+import json
 
 app = Flask(__name__)
 CORS(app)  # This enables CORS for all routes
@@ -31,6 +34,32 @@ def handle_exception(e):
     return jsonify({"error": "An internal server error occurred"}), 500
 
 
+def get_credentials():
+    # ID of your project and the ID of the secret you want to access
+    project_id = "70513175587"
+    secret_id = "cloud-translation-service-account"
+
+    # Build the client and request object
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+    response = client.access_secret_version(request={"name": name})
+
+    # Load credentials from the secret payload
+    credentials_info = json.loads(response.payload.data.decode('UTF-8'))
+    credentials = service_account.Credentials.from_service_account_info(credentials_info)
+    return credentials
+
+
+def create_speech_client():
+    credentials = get_credentials()
+    client = speech.SpeechClient(credentials=credentials)
+    return client
+
+def create_translate_client():
+    credentials = get_credentials()
+    client = translate.TranslationServiceClient(credentials=credentials)
+    return client
+
 # Load configuration from JSON file
 with open('config.json') as json_file:
     data = json.load(json_file)
@@ -39,12 +68,9 @@ with open('config.json') as json_file:
     translate_from = data['translateFrom']
     translate_to = data['translateTo']
 
-# Set the path to your Google Cloud credentials
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'serviceAccount.json'
-
 def transcribe_audio(speech_file, lang):
     app.logger.debug(f"Transcribing audio file. Original language: {lang}")
-    client = speech.SpeechClient()
+    client = create_speech_client() 
 
     try:
         audio_info = mediainfo(speech_file)
@@ -153,16 +179,28 @@ def convert_audio_to_wav(input_file):
 
     return output_file
 
-def translate_text(text, target_language):
-    """Translate the given text to the target language using Google Cloud Translation."""
-    translate_client = translate.Client()
+def translate_text(text, target_language, source_language=None, model="nmt"):
+    """Translate the given text to the target language using Google Cloud Translation v3."""
+    client = create_translate_client() 
+    
+    # Use the global location for the default NMT model
+    parent = client.location_path('your-project-id', 'global')
 
-    try:
-        result = translate_client.translate(text, target_language=target_language)
-        return result['translatedText']
-    except Exception as e:
-        app.logger.error(f"Error in translating text: {e}")
-        return None
+    # Prepare the request body with optional parameters
+    request = {
+        "parent": parent,
+        "contents": [text],
+        "mime_type": "text/plain",  # Mime types: "text/plain" or "text/html"
+        "source_language_code": source_language if source_language else "",
+        "target_language_code": target_language,
+        "model": f"projects/your-project-id/locations/global/models/general/{model}"
+    }
+
+    # Perform the translation request
+    response = client.translate_text(request)
+    if response.translations:
+        return response.translations[0].translated_text
+    return None
 
 def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3"):
     """Generate a voice file using Eleven Labs API."""
@@ -230,18 +268,19 @@ def process_audio():
         trimmed_audio_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trimmed_audio.wav')
         trimmed_audio.export(trimmed_audio_path, format="wav")
 
-        # Use the provided input language for transcription
+        # Transcribe audio
         transcribed_text = transcribe_audio(trimmed_audio_path, input_lang)
-        if transcribed_text is None:
+        if not transcribed_text:
             return jsonify({"error": "Transcription failed"}), 500
-
-        # Use the provided output language for translation
-        translated_text = translate_text(transcribed_text, output_lang)
-        if translated_text is None:
+        
+        # Translate using the updated function
+        translated_text = translate_text(transcribed_text, output_lang, input_lang)
+        if not translated_text:
             return jsonify({"error": "Translation failed"}), 500
-
+        
+        # Proceed with generating and returning the voice file
         voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
-        if voice_file_path is None:
+        if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
 
         return send_file(voice_file_path, as_attachment=True)
