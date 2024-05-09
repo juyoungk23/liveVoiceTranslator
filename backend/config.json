@@ -1,0 +1,13 @@
+{
+  "elevenLabsAPIKey": "2c17c500ec63574e4beffcc9fcb3d451",
+  "translateFrom": "en-US",
+  "translateTo": "es",
+  "inputAudioPath": "audio.mp3",
+  "voices": {
+    "Juyoung": "mQEk9lYcxDbbsCuu6XQJ",
+    "Jessica": "HQFlGqgbE5TiAAUmmuyQ",
+    "Aditi": "gtVxtnGdfqnAGWQeqpPm",
+    "Nimal": "nR2UbNaHjFr9crnHhKAB",
+    "Jane": "w0FTld3VgsXqUaNGNRnY"
+  }
+}
