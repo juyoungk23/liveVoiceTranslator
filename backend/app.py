@@ -200,7 +200,7 @@ def translate_text(text, target_language, source_language=None, model="nmt"):
         "mime_type": "text/plain",  # Mime types: "text/plain" or "text/html"
         "source_language_code": source_language,
         "target_language_code": target_language,
-        "model": model_path
+        # "model": model_path # comment out if using base NMT model. Uncomment if using custom model
     }
 
     response = client.translate_text(request=request)
