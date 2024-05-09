@@ -38,10 +38,11 @@ def get_credentials():
     # ID of your project and the ID of the secret you want to access
     project_id = "70513175587"
     secret_id = "cloud-translation-service-account"
+    version_id = "1"
 
     # Build the client and request object
     client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}"
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
     response = client.access_secret_version(request={"name": name})
 
     # Load credentials from the secret payload
