@@ -70,7 +70,6 @@ with open('config.json') as json_file:
     translate_to = data['translateTo']
 
 def transcribe_audio(speech_file, lang):
-    app.logger.debug(f"Transcribing audio file. Original language: {lang}")
     client = create_speech_client() 
 
     try:
@@ -163,7 +162,7 @@ def convert_audio_to_wav(input_file):
 
         # Ensure the audio is 16-bit, mono, and at the desired frame rate
         audio = audio.set_sample_width(2)  # 2 bytes (16 bits)
-        audio = audio.set_frame_rate(16000)  # 16 kHz
+        audio = audio.set_frame_rate(8000)  # 16 kHz
         audio = audio.set_channels(1)  # Mono
         audio.export(output_file, format='wav')
     except CouldntDecodeError as e:
