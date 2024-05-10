@@ -276,16 +276,19 @@ def process_audio():
         transcribed_text = transcribe_audio(trimmed_audio_path, input_lang)
         if not transcribed_text:
             return jsonify({"error": "Transcription failed"}), 500
-        
+        app.logger.debug(f"Time taken for transcription: {time.time() - start_time} seconds")
+
         # Translate using the updated function
         translated_text = translate_text(transcribed_text, output_lang, input_lang)
         if not translated_text:
             return jsonify({"error": "Translation failed"}), 500
+        app.logger.debug(f"Time taken for translation: {time.time() - start_time} seconds")
         
         # Proceed with generating and returning the voice file
         voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
+        app.logger.debug(f"Time taken for voice generation: {time.time() - start_time} seconds")
         
         app.logger.debug(f"Total processing time: {time.time() - start_time} seconds")
 
