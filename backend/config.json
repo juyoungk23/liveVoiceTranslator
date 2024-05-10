@@ -1,5 +1,6 @@
 {
   "elevenLabsAPIKey": "2c17c500ec63574e4beffcc9fcb3d451",
+  "openAIAPIKey": "sk-proj-AxN8gsNOxemUaq75KIGZT3BlbkFJb1U6KCMWyVEhc82nf4z2",
   "translateFrom": "en-US",
   "translateTo": "es",
   "inputAudioPath": "audio.mp3",
