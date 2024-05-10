@@ -13,7 +13,6 @@ from google.cloud import speech
 from google.cloud import translate_v3 as translate
 import json
 import time
-import subprocess
 
 app = Flask(__name__)
 CORS(app)  # This enables CORS for all routes
@@ -236,20 +235,6 @@ def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3")
     except Exception as e:
         app.logger.error(f"Error in generating voice file: {e}")
         return None
-    
-
-def trim_audio_ffmpeg(source_path, output_path, start_time, duration):
-    """ Use ffmpeg to trim the audio without loading the file into memory. """
-    cmd = [
-        'ffmpeg',
-        '-i', source_path,  # Input file
-        '-ss', str(start_time),  # Start time in seconds
-        '-t', str(duration),  # Duration to keep in seconds
-        '-acodec', 'copy',  # Use the same audio codec to avoid re-encoding
-        output_path
-    ]
-    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
     overall_start_time = time.time()
@@ -261,30 +246,34 @@ def process_audio():
     if audio_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    input_lang = request.form.get('input_lang', 'en-US')
-    output_lang = request.form.get('output_lang', 'es')
-    voice_label = request.form.get('voice', 'Juyoung')
-    voice_id = voices.get(voice_label, 'default_voice_id')  # Modify as necessary
+    # Extract from the request form data
+    input_lang = request.form.get('input_lang', 'en-US')  # Default to 'en-US' if not provided
+    output_lang = request.form.get('output_lang', 'es')  # Default to 'es' if not provided
+    voice_label = request.form.get('voice', 'Juyoung')  # Default to a default voice label if not provided
+    voice_id = voices.get(voice_label, 'w0FTld3VgsXqUaNGNRnY')  # Use a default voice ID if the label is not found
 
-    app.logger.debug("------------------------------------------")
-    app.logger.debug("Received Request! Form data: ")
+    app.logger.debug(f"------------------------------------------")
+    app.logger.debug(f"Received Request! Form data: ")
     app.logger.debug(f"Input Lang: {input_lang}")
     app.logger.debug(f"Output Lang: {output_lang}")
     app.logger.debug(f"Voice: {voice_label}")
 
     try:
-         # Save the audio file
+        # Save the audio file
         audio_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploaded_audio.wav')
         audio_file.save(audio_file_path)
         save_time = time.time()
+        time_to_save_audio = save_time - overall_start_time
+        app.logger.debug(f"Time taken for saving audio file: {time_to_save_audio} seconds")
 
-        # Trim the audio using ffmpeg
+        # Trim the audio file
+        audio = AudioSegment.from_file(audio_file_path)
+        trimmed_audio = audio[:30000]  # Trim to first 30 seconds
         trimmed_audio_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trimmed_audio.wav')
-        trim_audio_ffmpeg(audio_file_path, trimmed_audio_path, 0, 30)  # Trim to the first 30 seconds
+        trimmed_audio.export(trimmed_audio_path, format="wav")
         trim_time = time.time()
-
-        app.logger.debug(f"Time taken for saving audio file: {save_time - overall_start_time} seconds")
-        app.logger.debug(f"Time taken for trimming audio file: {trim_time - save_time} seconds")
+        time_to_trim_audio = trim_time - save_time
+        app.logger.debug(f"Time taken for trimming audio file: {time_to_trim_audio} seconds")
 
         # Transcribe audio
         transcribed_text = transcribe_audio(trimmed_audio_path, input_lang)
