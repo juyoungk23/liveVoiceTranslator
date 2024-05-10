@@ -165,11 +165,6 @@ def convert_audio_to_wav(input_file):
         audio = audio.set_sample_width(2)  # 2 bytes (16 bits)
         audio = audio.set_frame_rate(16000)  # 16 kHz
         audio = audio.set_channels(1)  # Mono
-
-        # Trim the audio to 30 seconds if it's longer
-        if len(audio) > 30000:
-            audio = audio[:30000]  # Keep only the first 30 seconds
-
         audio.export(output_file, format='wav')
     except CouldntDecodeError as e:
         app.logger.error(f"Could not decode the input file: {e}")
@@ -209,15 +204,15 @@ def translate_text(text, target_language, source_language=None, model="nmt"):
     return None
 
 
-def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3"):
+def generate_voice_file(text, voice_id, api_key, model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
     """Generate a voice file using Eleven Labs API."""
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 
     payload = {
-        "model_id": "eleven_multilingual_v2",
+        "model_id": model_id,
         "text": text,
         "voice_settings": {
-            "similarity_boost": 0.75,
+            "similarity_boost": 0.50,
             "stability": 0.50
         }
     }
@@ -235,6 +230,7 @@ def generate_voice_file(text, voice_id, api_key, output_file="output_voice.mp3")
     except Exception as e:
         app.logger.error(f"Error in generating voice file: {e}")
         return None
+    
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
     overall_start_time = time.time()
@@ -252,7 +248,7 @@ def process_audio():
     voice_label = request.form.get('voice', 'Juyoung')  # Default to a default voice label if not provided
     voice_id = voices.get(voice_label, 'w0FTld3VgsXqUaNGNRnY')  # Use a default voice ID if the label is not found
 
-    app.logger.debug(f"------------------------------------------")
+    app.logger.debug(f"------------------------------------------------------------")
     app.logger.debug(f"Received Request! Form data: ")
     app.logger.debug(f"Input Lang: {input_lang}")
     app.logger.debug(f"Output Lang: {output_lang}")
@@ -292,7 +288,12 @@ def process_audio():
         app.logger.debug(f"Time taken for translation: {time_to_translate} seconds")
 
         # Generate voice file
-        voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
+        if output_lang == "en":
+            model_id = "eleven_turbo_v2"
+            voice_file_path = generate_voice_file(translated_text, voice_id, api_key, model_id)
+        else:
+            voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
+
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
         generate_time = time.time()
