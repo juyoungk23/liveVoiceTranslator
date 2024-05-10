@@ -260,35 +260,43 @@ def process_audio():
     app.logger.debug(f"Voice: {voice_label}")
 
     try:
+        
         # Define the path for saving the audio file
         audio_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploaded_audio.wav')
 
         # Save the audio file
         audio_file.save(audio_file_path)
+        time_to_save_audio = time.time() - start_time
+        app.logger.debug(f"Time taken for saving audio file: {time_to_save_audio} seconds")
         
         # Load and trim the audio file to 30 seconds
         audio = AudioSegment.from_file(audio_file_path)
         trimmed_audio = audio[:30000]  # Trim to first 30 seconds
         trimmed_audio_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trimmed_audio.wav')
         trimmed_audio.export(trimmed_audio_path, format="wav")
+        time_to_trim_audio = time.time() - time_to_save_audio
+        app.logger.debug(f"Time taken for trimming audio file: {time_to_trim_audio} seconds")
 
         # Transcribe audio
         transcribed_text = transcribe_audio(trimmed_audio_path, input_lang)
         if not transcribed_text:
             return jsonify({"error": "Transcription failed"}), 500
-        app.logger.debug(f"Time taken for transcription: {time.time() - start_time} seconds")
+        time_to_transcribe = time.time() - time_to_trim_audio
+        app.logger.debug(f"Time taken for transcription: {time_to_transcribe} seconds")
 
         # Translate using the updated function
         translated_text = translate_text(transcribed_text, output_lang, input_lang)
         if not translated_text:
             return jsonify({"error": "Translation failed"}), 500
-        app.logger.debug(f"Time taken for translation: {time.time() - start_time} seconds")
+        time_to_translate = time.time() - time_to_transcribe
+        app.logger.debug(f"Time taken for translation: {time_to_translate} seconds")
         
         # Proceed with generating and returning the voice file
         voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
-        app.logger.debug(f"Time taken for voice generation: {time.time() - start_time} seconds")
+        time_to_generate_voice = time.time() - time_to_translate
+        app.logger.debug(f"Time taken for generating voice: {time_to_generate_voice} seconds")
         
         app.logger.debug(f"Total processing time: {time.time() - start_time} seconds")
 
