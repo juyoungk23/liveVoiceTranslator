@@ -297,7 +297,7 @@ def process_audio():
         app.logger.debug(f"Time taken for trimming audio file: {time_to_trim_audio} seconds")
 
         # Transcribe audio
-        transcribed_text = transcribe_audio(trimmed_audio_path, input_lang) # Using Google Speech-to-Text API
+        transcribed_text = transcribe_audio_google(trimmed_audio_path, input_lang) # Using Google Speech-to-Text API
         # transcribed_text = transcribe_audio(trimmed_audio_path) # Using OpenAI API 
         if not transcribed_text:
             return jsonify({"error": "Transcription failed"}), 500
