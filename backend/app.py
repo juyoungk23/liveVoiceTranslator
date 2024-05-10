@@ -35,20 +35,33 @@ def handle_exception(e):
     return jsonify({"error": "An internal server error occurred"}), 500
 
 
+def get_secret(project_id, secret_id):
+    client = secretmanager.SecretManagerServiceClient()
+    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+    response = client.access_secret_version(request={"name": secret_name})
+    return response.payload.data.decode('UTF-8')
+# Retrieve API keys from Google Cloud Secret Manager
+project_id = "70513175587"
+openai_api_key = get_secret(project_id, "OpenAIAPIKey")
+elevenlabs_api_key = get_secret(project_id, "ElevenLabsAPIKey")
+openai_client = openai.OpenAI(api_key=openai_api_key)
+
 def get_credentials():
     # ID of your project and the ID of the secret you want to access
-    project_id = "70513175587"
-    secret_id = "cloud-translation-service-account"
-    version_id = "1"
+    cloud_translation_service_account_secret_id = "cloud-translation-service-account"
+
+    # access OpenAIAPIKey and ElevenLabsAPIKey secrets
 
     # Build the client and request object
     client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+    name = f"projects/{project_id}/secrets/{cloud_translation_service_account_secret_id}/versions/latest"
+   
     response = client.access_secret_version(request={"name": name})
 
     # Load credentials from the secret payload
     credentials_info = json.loads(response.payload.data.decode('UTF-8'))
     credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
     return credentials
 
 
@@ -71,7 +84,6 @@ with open('config.json') as json_file:
     translate_from = data['translateFrom']
     translate_to = data['translateTo']
 
-openai_client = openai.OpenAI(api_key=openai_api_key)
 def transcribe_audio(speech_file):
     try:
         with open(speech_file, 'rb') as audio_file:
@@ -288,7 +300,7 @@ def process_audio():
 
         # Transcribe audio
         # transcribed_text = transcribe_audio(trimmed_audio_path, input_lang) # Using Google Speech-to-Text API
-        transcribed_text = transcribe_audio(trimmed_audio_path) # Using OpenAI API
+        transcribed_text = transcribe_audio(trimmed_audio_path) # Using OpenAI API 
         if not transcribed_text:
             return jsonify({"error": "Transcription failed"}), 500
         transcribe_time = time.time()
