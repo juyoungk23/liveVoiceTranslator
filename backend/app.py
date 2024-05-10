@@ -78,8 +78,6 @@ def create_translate_client():
 # Load configuration from JSON file
 with open('config.json') as json_file:
     data = json.load(json_file)
-    api_key = data['elevenLabsAPIKey']
-    openai_api_key = data['openAIAPIKey']
     voices = data['voices']
     translate_from = data['translateFrom']
     translate_to = data['translateTo']
