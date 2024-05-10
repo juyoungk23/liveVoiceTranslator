@@ -316,9 +316,9 @@ def process_audio():
         # Generate voice file
         if output_lang == "en":
             model_id = "eleven_turbo_v2"
-            voice_file_path = generate_voice_file(translated_text, voice_id, api_key, model_id)
+            voice_file_path = generate_voice_file(translated_text, voice_id, elevenlabs_api_key, model_id)
         else:
-            voice_file_path = generate_voice_file(translated_text, voice_id, api_key)
+            voice_file_path = generate_voice_file(translated_text, voice_id, elevenlabs_api_key)
 
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
