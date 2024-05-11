@@ -31,6 +31,8 @@ def process_audio():
     output_lang = request.form.get('output_lang', 'es')
     voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')
 
+    app.logger.info(f"Processing audio file with\ninput language {input_lang}, \noutput language {output_lang}, \nvoice ID {voice_id}")
+
     try:
         # Save to a temporary file
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
@@ -48,18 +50,28 @@ def process_audio():
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
+        transcribe_time = time.time() - overall_start_time
+        app.logger.info(f"Transcription took {transcribe_time:.2f} seconds")
 
         # Translation
         translated_text = translate_text(transcribed_text, input_lang, output_lang)
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
+        translate_time = time.time() - transcribe_time
+        app.logger.info(f"Translation took {translate_time:.2f} seconds")
+
 
         # Voice generation
         voice_file_path = generate_voice_file(translated_text, voice_id)
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500
+        voice_time = time.time() - translate_time
+        app.logger.info(f"Voice generation took {voice_time:.2f} seconds")
+
+        overall_time = time.time() - overall_start_time
+        app.logger.info(f"Overall processing took {overall_time:.2f} seconds")
 
         os.unlink(converted_audio_path)  # Clean up the converted file
         return send_file(voice_file_path, as_attachment=True)

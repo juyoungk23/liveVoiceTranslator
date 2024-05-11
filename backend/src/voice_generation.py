@@ -41,6 +41,7 @@ def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", 
         return None
 
     voice_id = get_voice_id(voice_name)
+    logging.info(f"Voice ID for {voice_name} found.")
     
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     payload = {
