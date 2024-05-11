@@ -3,7 +3,7 @@ import logging
 from google.cloud import translate_v3 as translate
 from src.secret_manager import get_credentials
 
-def translate_text(text, target_language, source_language='en', model_id=None):
+def translate_text(text, source_language='en-US', target_language='es', model_id=None):
     """Translates text from one language to another using Google Cloud Translate."""
     credentials = get_credentials()
     if not credentials:

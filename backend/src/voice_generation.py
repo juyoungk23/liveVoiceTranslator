@@ -2,13 +2,31 @@ import requests
 import logging
 from .secret_manager import get_secret
 
-def generate_voice_file(text, voice_id, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
+
+def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
+    voice_ids = get_secret(secret_id) # JSON
+    if not voice_ids:
+        logging.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
+        return None
+    
+    return voice_ids
+
+def get_voice_id(voice_name):
+    voice_id = get_voice_ids().get(voice_name)
+    if not voice_id:
+        logging.error(f"Voice ID for {voice_name} not found in JSON file. Defaulting to Jane.")
+        return get_voice_ids().get("Jane")
+
+    return voice_id
+
+
+def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
     """
     Generate a voice file using Eleven Labs API.
     
     Args:
     text (str): Text to be converted to speech.
-    voice_id (str): ID of the voice to use.
+    voice_name (str): Name of the voice to use.
     api_key_secret_id (str): Secret ID where the API key is stored.
     model_id (str): ID of the model to use for speech generation, defaults to 'eleven_multilingual_v2'.
     output_file (str): Path where the output file should be saved, defaults to 'output_voice.mp3'.
@@ -21,13 +39,17 @@ def generate_voice_file(text, voice_id, api_key_secret_id="ElevenLabsAPIKey", mo
         logging.error("Failed to retrieve API key for voice generation")
         return None
 
+    voice_id = get_voice_id(voice_name)
+    
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     payload = {
         "model_id": model_id,
         "text": text,
         "voice_settings": {
             "similarity_boost": 0.50,
-            "stability": 0.50
+            "stability": 0.50,
+            "style": 0.6,
+            "use_speaker_boost": True
         }
     }
     headers = {
@@ -36,7 +58,7 @@ def generate_voice_file(text, voice_id, api_key_secret_id="ElevenLabsAPIKey", mo
     }
 
     try:
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.request("POST", url, json=payload, headers=headers)
         response.raise_for_status()
         with open(output_file, 'wb') as file:
             file.write(response.content)

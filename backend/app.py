@@ -50,7 +50,7 @@ def process_audio():
             return jsonify({"error": "Transcription failed"}), 500
 
         # Translation
-        translated_text = translate_text(transcribed_text, output_lang, input_lang)
+        translated_text = translate_text(transcribed_text, input_lang, output_lang)
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
