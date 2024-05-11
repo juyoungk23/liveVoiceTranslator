@@ -2,11 +2,10 @@ from flask import Flask, request, jsonify, send_file
 import logging
 import time
 import sys
-from src import (transcribe_audio_google, transcribe_audio_whisper,
-                 translate_text, generate_voice_file,
-                 convert_audio_to_wav)
 import tempfile
 import os
+from src import (transcribe_audio_google, translate_text, generate_voice_file,
+                 convert_audio_to_wav)
 
 app = Flask(__name__)
 
@@ -30,50 +29,44 @@ def process_audio():
 
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
-    voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')  # Ensure to manage default voice_id appropriately
+    voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')
 
     try:
-        # Save to a temporary file, to avoid disk persistence
-        with tempfile.NamedTemporaryFile(delete=False) as temp_audio:
+        # Save to a temporary file
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
             audio_file.save(temp_audio)
             temp_audio_path = temp_audio.name
 
+        # Convert to the proper WAV format
+        converted_audio_path = convert_audio_to_wav(temp_audio_path)
+        if not converted_audio_path:
+            os.unlink(temp_audio_path)  # Clean up the original temporary file
+            return jsonify({"error": "Failed to convert audio file"}), 500
+        
         # Transcription
-        start_time = time.time()
-        transcribed_text = transcribe_audio_google(temp_audio_path, input_lang)
+        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
         if not transcribed_text:
-            os.unlink(temp_audio_path)  # Clean up temporary file
+            os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
-        transcribe_time = time.time() - start_time
-        app.logger.debug(f"Time taken for transcription: {transcribe_time} seconds")
 
         # Translation
-        start_time = time.time()
         translated_text = translate_text(transcribed_text, output_lang, input_lang)
         if not translated_text:
-            os.unlink(temp_audio_path)  # Clean up temporary file
+            os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
-        translate_time = time.time() - start_time
-        app.logger.debug(f"Time taken for translation: {translate_time} seconds")
 
         # Voice generation
-        start_time = time.time()
         voice_file_path = generate_voice_file(translated_text, voice_id)
         if not voice_file_path:
-            os.unlink(temp_audio_path)  # Clean up temporary file
+            os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500
-        generate_time = time.time() - start_time
-        app.logger.debug(f"Time taken for generating voice file: {generate_time} seconds")
 
-        total_processing_time = time.time() - overall_start_time
-        app.logger.debug(f"Total processing time: {total_processing_time} seconds")
-
-        # Clean up the temporary file
-        os.unlink(temp_audio_path)
-
-        # Return the voice file as a response
+        os.unlink(converted_audio_path)  # Clean up the converted file
         return send_file(voice_file_path, as_attachment=True)
+
     except Exception as e:
+        if 'temp_audio_path' in locals():
+            os.unlink(temp_audio_path)  # Ensure cleanup in case of error
         app.logger.error(f"Unhandled exception: {e}")
         return jsonify({"error": "An error occurred"}), 500
 
