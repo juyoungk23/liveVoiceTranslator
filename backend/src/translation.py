@@ -12,9 +12,11 @@ def translate_text(text, target_language, source_language='en', model_id=None):
 
     client = translate.TranslationServiceClient(credentials=credentials)
     project_id = "70513175587"  # Replace with your actual project ID
-    location = 'us-central1'  # 'global' is the default location; specify other regions if necessary
+    location = 'global'  # 'global' is the default location; specify other regions if necessary
 
-    parent = client.location_path(project_id, location)
+    # parent = client.location_path(project_id, location)
+    parent = f"projects/{project_id}/locations/{location}"
+
 
     # Building the request
     request = {
