@@ -1,15 +1,16 @@
 import requests
 import logging
 from .secret_manager import get_secret
-
+import json
 
 def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
     voice_ids = get_secret(secret_id) # JSON
+
     if not voice_ids:
         logging.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
         return None
     
-    return voice_ids
+    return json.dumps(voice_ids)
 
 def get_voice_id(voice_name):
     voice_id = get_voice_ids().get(voice_name)
