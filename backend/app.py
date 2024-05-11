@@ -5,7 +5,7 @@ import time
 import sys
 from src import (transcribe_audio_google, transcribe_audio_whisper,
                  translate_text, generate_voice_file,
-                 convert_audio_to_wav, get_secret)
+                 convert_audio_to_wav)
 
 app = Flask(__name__)
 
@@ -53,7 +53,7 @@ def process_audio():
         app.logger.debug(f"Time taken for translation: {translate_time} seconds")
 
         start_time = time.time()
-        voice_file_path = generate_voice_file(translated_text, voice_id, get_secret('your_project_id', 'api_key_secret'))
+        voice_file_path = generate_voice_file(translated_text, voice_id)
         if not voice_file_path:
             return jsonify({"error": "Voice generation failed"}), 500
         generate_time = time.time() - start_time
