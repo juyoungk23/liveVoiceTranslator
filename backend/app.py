@@ -76,7 +76,14 @@ def process_audio():
         app.logger.info(f"Overall processing took {overall_time:.2f} seconds")
 
         os.unlink(converted_audio_path)  # Clean up the converted file
-        return send_file(voice_file_path, as_attachment=True)
+
+        if not os.path.exists(voice_file_path):
+            app.logger.error("Generated voice file not found.")
+            return jsonify({"error": "Generated voice file not found"}), 500
+
+        return send_file(voice_file_path, as_attachment=True, mimetype='audio/mpeg')
+
+
 
     except Exception as e:
         if 'temp_audio_path' in locals():

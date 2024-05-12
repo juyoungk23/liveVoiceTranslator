@@ -34,19 +34,6 @@ def get_voice_id(voice_name):
     return voice_id
 
 def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
-    """
-    Generate a voice file using Eleven Labs API.
-    
-    Args:
-    text (str): Text to be converted to speech.
-    voice_name (str): Name of the voice to use.
-    api_key_secret_id (str): Secret ID where the API key is stored.
-    model_id (str): ID of the model to use for speech generation, defaults to 'eleven_multilingual_v2'.
-    output_file (str): Path where the output file should be saved, defaults to 'output_voice.mp3'.
-    
-    Returns:
-    str or None: Path to the generated voice file or None if failed.
-    """
     api_key = get_secret(api_key_secret_id)
     if not api_key:
         logger.error("Failed to retrieve API key for voice generation")
