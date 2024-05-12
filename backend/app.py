@@ -11,8 +11,13 @@ from src import (transcribe_audio_google, translate_text, generate_voice_file,
 app = Flask(__name__)
 CORS(app) 
 
-# Configure logging to write to stdout, suitable for Cloud Run
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Basic configuration for your application's logger
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Setting third-party libraries' loggers to a higher log level
+logging.getLogger('google.auth').setLevel(logging.WARNING)
+logging.getLogger('google.auth.transport.requests').setLevel(logging.WARNING)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -58,7 +63,7 @@ def process_audio():
 
         # Translation
         translation_start_time = time.time()
-        translated_text = translate_text(transcribed_text, output_lang, input_lang)
+        translated_text = translate_text(transcribed_text, input_lang, output_lang)
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500

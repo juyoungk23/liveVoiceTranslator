@@ -8,7 +8,7 @@ import openai
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.setLevel(logging.INFO)  # Set the appropriate level if needed
 logger.debug("transcription.py: Logger level is set to debug")
 
 

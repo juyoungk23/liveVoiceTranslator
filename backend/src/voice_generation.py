@@ -5,7 +5,7 @@ from .secret_manager import get_secret
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.setLevel(logging.INFO)  # Set the appropriate level if needed
 logger.debug("voice_generation.py: Logger level is set to debug")
 
 def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
