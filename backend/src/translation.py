@@ -4,8 +4,10 @@ from google.cloud import translate_v3 as translate
 from src.secret_manager import get_credentials
 
 # Ensure the logger uses the same configuration
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.debug("translation.py: Logger level is set to debug")
 
 
 

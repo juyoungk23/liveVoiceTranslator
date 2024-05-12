@@ -7,6 +7,7 @@ import logging
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.debug("secret_manager.py: Logger level is set to debug")
 
 
 # Configure your Google Cloud Project ID here

@@ -9,6 +9,7 @@ import openai
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.debug("transcription.py: Logger level is set to debug")
 
 
 def transcribe_audio_whisper(speech_file, openai_api_key):
@@ -56,7 +57,10 @@ def transcribe_audio_google(speech_file, language_code):
         if not response.results:
             logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
-        return response.results[0].alternatives[0].transcript
+        
+        transcript = response.results[0].alternatives[0].transcript
+        logger.info(f"Transcription successfu: {transcript}")
+        return transcript
     except Exception as e:
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
         return None

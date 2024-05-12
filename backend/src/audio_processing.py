@@ -8,6 +8,7 @@ import logging
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+logger.debug("audio_processing.py: Logger level is set to debug")
 
 
 def convert_audio_to_16_bit(input_file):
