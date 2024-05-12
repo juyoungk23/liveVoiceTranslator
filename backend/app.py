@@ -31,7 +31,7 @@ def process_audio():
     output_lang = request.form.get('output_lang', 'es')
     voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')
 
-    app.logger.info(f"Processing audio file with\ninput language {input_lang}, \noutput language {output_lang}, \nvoice ID {voice_id}")
+    app.logger.info(f"Processing audio file with input language {input_lang}, output language {output_lang}, voice ID {voice_id}")
 
     try:
         # Save to a temporary file
@@ -44,30 +44,32 @@ def process_audio():
         if not converted_audio_path:
             os.unlink(temp_audio_path)  # Clean up the original temporary file
             return jsonify({"error": "Failed to convert audio file"}), 500
-        
+
         # Transcription
+        transcription_start_time = time.time()
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
-        transcribe_time = time.time() - overall_start_time
+        transcribe_time = time.time() - transcription_start_time
         app.logger.info(f"Transcription took {transcribe_time:.2f} seconds")
 
         # Translation
-        translated_text = translate_text(transcribed_text, input_lang, output_lang)
+        translation_start_time = time.time()
+        translated_text = translate_text(transcribed_text, output_lang, input_lang)
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
-        translate_time = time.time() - transcribe_time
+        translate_time = time.time() - translation_start_time
         app.logger.info(f"Translation took {translate_time:.2f} seconds")
 
-
         # Voice generation
+        voice_generation_start_time = time.time()
         voice_file_path = generate_voice_file(translated_text, voice_id)
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500
-        voice_time = time.time() - translate_time
+        voice_time = time.time() - voice_generation_start_time
         app.logger.info(f"Voice generation took {voice_time:.2f} seconds")
 
         overall_time = time.time() - overall_start_time
