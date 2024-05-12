@@ -1,8 +1,7 @@
 import requests
 import logging
 from .secret_manager import get_secret
-import json
-
+from flask import jsonify
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
         logger.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
         return None
     
-    return json.dumps(voice_ids)
+    return jsonify(voice_ids)
 
 def get_voice_id(voice_name):
     voice_id = get_voice_ids().get(voice_name)
