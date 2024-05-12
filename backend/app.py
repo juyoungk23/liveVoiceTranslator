@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import logging
 import time
 import sys
@@ -8,6 +9,7 @@ from src import (transcribe_audio_google, translate_text, generate_voice_file,
                  convert_audio_to_wav)
 
 app = Flask(__name__)
+CORS(app) 
 
 # Configure logging to write to stdout, suitable for Cloud Run
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
