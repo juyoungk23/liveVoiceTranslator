@@ -13,6 +13,10 @@ logger.debug("translation.py: Logger level is set to debug")
 
 def translate_text(text, source_language='en-US', target_language='es', model_id=None):
     """Translates text from one language to another using Google Cloud Translate."""
+
+    logger.info(f"Translating text from {source_language} to {target_language}")
+    logger.info(f"Loading credentials for Google Cloud Translate API...")
+
     credentials = get_credentials()
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Translate API")
@@ -25,7 +29,8 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
     # parent = client.location_path(project_id, location)
     parent = f"projects/{project_id}/locations/{location}"
 
-
+    logger.info("Successfully loaded Google Cloud credentials for Translate API")
+    
     # Building the request
     request = {
         "parent": parent,
@@ -42,7 +47,10 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
     try:
         response = client.translate_text(request)
         if response.translations:
-            return response.translations[0].translated_text
+
+            translation = response.translations[0].translated_text
+            logger.info(f"Translated text: {translation}")
+            return translation
     except Exception as e:
         logger.error(f"Failed to translate text: {e}", exc_info=True)
         return None

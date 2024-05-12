@@ -59,7 +59,7 @@ def transcribe_audio_google(speech_file, language_code):
             return "No text was provided"
         
         transcript = response.results[0].alternatives[0].transcript
-        logger.info(f"Transcription successfu: {transcript}")
+        logger.info(f"Transcription successful: {transcript}")
         return transcript
     except Exception as e:
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
