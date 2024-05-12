@@ -3,11 +3,18 @@ import logging
 from .secret_manager import get_secret
 import json
 
+
+# Ensure the logger uses the same configuration
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+
+
+
 def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
     voice_ids = get_secret(secret_id) # JSON
 
     if not voice_ids:
-        logging.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
+        logger.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
         return None
     
     return json.dumps(voice_ids)
@@ -15,7 +22,7 @@ def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
 def get_voice_id(voice_name):
     voice_id = get_voice_ids().get(voice_name)
     if not voice_id:
-        logging.error(f"Voice ID for {voice_name} not found in JSON file. Defaulting to Jane.")
+        logger.error(f"Voice ID for {voice_name} not found in JSON file. Defaulting to Jane.")
         return get_voice_ids().get("Jane")
 
     return voice_id
@@ -37,12 +44,12 @@ def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", 
     """
     api_key = get_secret(api_key_secret_id)
     if not api_key:
-        logging.error("Failed to retrieve API key for voice generation")
+        logger.error("Failed to retrieve API key for voice generation")
         return None
 
     voice_id = get_voice_id(voice_name)
-    logging.info(f"Voice ID for {voice_name} found.")
-    
+    logger.info(f"Voice ID for {voice_name} found.")
+
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     payload = {
         "model_id": model_id,
@@ -66,5 +73,5 @@ def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", 
             file.write(response.content)
         return output_file
     except Exception as e:
-        logging.error(f"Error in generating voice file: {e}")
+        logger.error(f"Error in generating voice file: {e}")
         return None

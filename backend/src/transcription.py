@@ -6,6 +6,11 @@ from src.audio_processing import convert_audio_to_wav, convert_audio_to_16_bit, 
 from src.secret_manager import get_credentials
 import openai
 
+# Ensure the logger uses the same configuration
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+
+
 def transcribe_audio_whisper(speech_file, openai_api_key):
     """Transcribe audio using OpenAI's Whisper model."""
     try:
@@ -17,20 +22,20 @@ def transcribe_audio_whisper(speech_file, openai_api_key):
             )
             return response.get('text')
     except Exception as e:
-        logging.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
+        logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None
 
 def transcribe_audio_google(speech_file, language_code):
     """Transcribe audio using Google Cloud Speech-to-Text API."""
     credentials = get_credentials()
     if not credentials:
-        logging.error("Failed to load Google Cloud credentials for Speech-to-Text API")
+        logger.error("Failed to load Google Cloud credentials for Speech-to-Text API")
         return None
     
     client = speech.SpeechClient(credentials=credentials)
     audio_format, sample_rate = get_audio_info(speech_file)
     if not audio_format or not sample_rate:
-        logging.error("Failed to retrieve audio format or sample rate")
+        logger.error("Failed to retrieve audio format or sample rate")
         return None
 
     if audio_format not in ['wav', 'mp3']:
@@ -49,9 +54,9 @@ def transcribe_audio_google(speech_file, language_code):
         )
         response = client.recognize(config=config, audio=audio)
         if not response.results:
-            logging.error("No transcription results returned from Google Speech-to-Text API")
+            logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
         return response.results[0].alternatives[0].transcript
     except Exception as e:
-        logging.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
+        logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
         return None

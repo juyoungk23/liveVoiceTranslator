@@ -3,11 +3,17 @@ import logging
 from google.cloud import translate_v3 as translate
 from src.secret_manager import get_credentials
 
+# Ensure the logger uses the same configuration
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+
+
+
 def translate_text(text, source_language='en-US', target_language='es', model_id=None):
     """Translates text from one language to another using Google Cloud Translate."""
     credentials = get_credentials()
     if not credentials:
-        logging.error("Failed to load Google Cloud credentials for Translate API")
+        logger.error("Failed to load Google Cloud credentials for Translate API")
         return None
 
     client = translate.TranslationServiceClient(credentials=credentials)
@@ -36,5 +42,5 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
         if response.translations:
             return response.translations[0].translated_text
     except Exception as e:
-        logging.error(f"Failed to translate text: {e}", exc_info=True)
+        logger.error(f"Failed to translate text: {e}", exc_info=True)
         return None

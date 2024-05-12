@@ -4,6 +4,11 @@ from google.oauth2 import service_account
 import json
 import logging
 
+# Ensure the logger uses the same configuration
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+
+
 # Configure your Google Cloud Project ID here
 PROJECT_ID = "70513175587"
 SECRET_ID = "cloud-translation-service-account"
@@ -17,7 +22,7 @@ def get_secret(secret_id):
         secret_data = response.payload.data.decode('UTF-8')
         return secret_data
     except Exception as e:
-        logging.error(f"Failed to access secret {secret_id}: {e}", exc_info=True)
+        logger.error(f"Failed to access secret {secret_id}: {e}", exc_info=True)
         return None
 
 def get_credentials():
@@ -30,5 +35,5 @@ def get_credentials():
         credentials = service_account.Credentials.from_service_account_info(credentials_info)
         return credentials
     except Exception as e:
-        logging.error(f"Failed to construct credentials from secret {SECRET_ID}: {e}", exc_info=True)
+        logger.error(f"Failed to construct credentials from secret {SECRET_ID}: {e}", exc_info=True)
         return None

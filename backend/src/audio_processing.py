@@ -5,6 +5,11 @@ from pydub.exceptions import CouldntDecodeError
 from pydub.utils import mediainfo
 import logging
 
+# Ensure the logger uses the same configuration
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the appropriate level if needed
+
+
 def convert_audio_to_16_bit(input_file):
     """Converts an audio file to 16-bit WAV format."""
     output_file = os.path.splitext(input_file)[0] + '_16bit.wav'
@@ -13,10 +18,10 @@ def convert_audio_to_16_bit(input_file):
         audio = audio.set_sample_width(2)  # 2 bytes (16 bits)
         audio.export(output_file, format='wav')
     except CouldntDecodeError as e:
-        logging.error(f"Could not decode the input file: {e}")
+        logger.error(f"Could not decode the input file: {e}")
         return None
     except Exception as e:
-        logging.error(f"Error in converting audio file to 16-bit: {e}", exc_info=True)
+        logger.error(f"Error in converting audio file to 16-bit: {e}", exc_info=True)
         return None
     return output_file
 
@@ -31,10 +36,10 @@ def convert_audio_to_wav(input_file):
         audio = audio.set_channels(1)  # Mono
         audio.export(output_file, format='wav')
     except CouldntDecodeError as e:
-        logging.error(f"Could not decode the input file: {e}")
+        logger.error(f"Could not decode the input file: {e}")
         return None
     except Exception as e:
-        logging.error(f"Error in converting audio file: {e}", exc_info=True)
+        logger.error(f"Error in converting audio file: {e}", exc_info=True)
         return None
     return output_file
 
@@ -46,5 +51,5 @@ def get_audio_info(speech_file):
         sample_rate = int(audio_info.get('sample_rate', '16000'))
         return audio_format, sample_rate
     except Exception as e:
-        logging.error(f"Error in getting audio file info: {e}", exc_info=True)
+        logger.error(f"Error in getting audio file info: {e}", exc_info=True)
         return None, None
