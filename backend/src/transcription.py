@@ -1,4 +1,3 @@
-# transcription.py
 import logging
 import os
 from google.cloud import speech
@@ -7,10 +6,9 @@ from src.secret_manager import get_credentials, get_secret
 import openai
 import time
 
-# Ensure the logger uses the same configuration
+# Configure the logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Set the appropriate level if needed
-logger.debug("transcription.py: Logger level is set to debug")
+logger.setLevel(logging.INFO)
 
 def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     """Transcribe audio using OpenAI's Whisper model."""
@@ -20,11 +18,14 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
         # Load the OpenAI API key from the secret manager
         api_key = get_secret(openai_api_key)
         openai.api_key = api_key  # Set the API key for the OpenAI client
-        time_to_set_api_key = time.time() - openai_whisper_start_time
-        logger.info(f"Time to retrieve OpenAI API key: {time_to_set_api_key:.2f} seconds")
 
+        # Measure the time taken to set the API key
+        time_to_set_api_key = time.time() - openai_whisper_start_time
+        logger.info(f"Time to retrieve and set OpenAI API key: {time_to_set_api_key:.2f} seconds")
+
+        client = openai.OpenAI()  # Create an OpenAI client instance
         with open(speech_file, 'rb') as audio_file:
-            response = openai.Audio.transcriptions.create(
+            response = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file
             )
@@ -39,7 +40,7 @@ def transcribe_audio_google(speech_file, language_code):
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Speech-to-Text API")
         return None
-    
+
     client = speech.SpeechClient(credentials=credentials)
     audio_format, sample_rate = get_audio_info(speech_file)
     if not audio_format or not sample_rate:
@@ -64,7 +65,7 @@ def transcribe_audio_google(speech_file, language_code):
         if not response.results:
             logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
-        
+
         transcript = response.results[0].alternatives[0].transcript
         logger.info(f"Transcription successful: {transcript}")
         return transcript
