@@ -5,7 +5,7 @@ import time
 import sys
 import tempfile
 import os
-from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_google, generate_voice_file_openai,
+from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
                  convert_audio_to_wav)
 
 app = Flask(__name__)
@@ -40,8 +40,13 @@ def process_audio():
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
     voice_name = request.form.get('voice', 'Jane')
+    mode = request.form.get('mode', 'person2')
 
-    app.logger.info(f"Processing audio file with \ninput language: {input_lang}, \noutput language: {output_lang}, \nvoice name: {voice_name}")
+    if mode == 'person1': 
+        mode = 'doctor' 
+    else: mode = 'patient'
+
+    app.logger.info(f"Processing audio file with \ninput language: {input_lang}, \noutput language: {output_lang}, \nvoice name: {voice_name}, \nmode: {mode}")
 
     try:
         # Save to a temporary file
@@ -78,8 +83,11 @@ def process_audio():
 
         # Voice generation
         voice_generation_start_time = time.time()
-        # voice_file_path = generate_voice_file_google(translated_text, voice_name)
-        voice_file_path = generate_voice_file_openai(translated_text)
+
+        if mode == 'doctor':
+            voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
+        else:
+            voice_file_path = generate_voice_file_openai(translated_text)
 
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file

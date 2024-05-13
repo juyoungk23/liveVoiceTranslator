@@ -37,7 +37,7 @@ def get_voice_id(voice):
     return voice_id
 
 # Define the function to generate voice file using OpenAI's TTS API
-def generate_voice_file_openai(text, voice="alloy", model="tts-1", output_format="mp3", output_file="output_voice.mp3", api_key_secret_id="OpenAI_API_KEY"):
+def generate_voice_file_openai(text, voice="nova", model="tts-1", output_format="mp3", output_file="output_voice.mp3", api_key_secret_id="OpenAI_API_KEY"):
     api_key = get_secret(api_key_secret_id)
     client = openai.OpenAI(api_key=api_key)  # Pass the API key directly when initializing the client
 
@@ -61,7 +61,7 @@ def generate_voice_file_openai(text, voice="alloy", model="tts-1", output_format
         logger.error(f"Error in generating voice file: {e}")
         return None
     
-def generate_voice_file_google(text, voice, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
+def generate_voice_file_eleven_labs(text, voice, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
     api_key = get_secret(api_key_secret_id)
     if not api_key:
         logger.error("Failed to retrieve API key for voice generation")
