@@ -55,9 +55,9 @@ def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", 
         "model_id": model_id,
         "text": text,
         "voice_settings": {
-            "similarity_boost": 0.50,
-            "stability": 0.50,
-            "style": 0.6,
+            "similarity_boost": 0.75,
+            "stability": 0.75,
+            "style": 0.25,
             "use_speaker_boost": True
         }
     }
