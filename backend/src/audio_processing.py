@@ -11,21 +11,6 @@ logger.setLevel(logging.INFO)  # Set the appropriate level if needed
 logger.debug("audio_processing.py: Logger level is set to debug")
 
 
-def convert_audio_to_16_bit(input_file):
-    """Converts an audio file to 16-bit WAV format."""
-    output_file = os.path.splitext(input_file)[0] + '_16bit.wav'
-    try:
-        audio = AudioSegment.from_file(input_file)
-        audio = audio.set_sample_width(2)  # 2 bytes (16 bits)
-        audio.export(output_file, format='wav')
-    except CouldntDecodeError as e:
-        logger.error(f"Could not decode the input file: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Error in converting audio file to 16-bit: {e}", exc_info=True)
-        return None
-    return output_file
-
 def convert_audio_to_wav(input_file):
     """Converts an audio file to WAV format with 16-bit samples and trims it to 30 seconds."""
     output_file = os.path.splitext(input_file)[0] + '.wav'

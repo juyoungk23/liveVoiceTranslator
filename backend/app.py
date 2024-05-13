@@ -50,18 +50,17 @@ def process_audio():
             temp_audio_path = temp_audio.name
 
         # Convert to the proper WAV format
-        # converted_audio_path = convert_audio_to_wav(temp_audio_path)
-        # if not converted_audio_path:
-        #     os.unlink(temp_audio_path)  # Clean up the original temporary file
-        #     return jsonify({"error": "Failed to convert audio file"}), 500
-        converted_audio_path = temp_audio_path
+        converted_audio_path = convert_audio_to_wav(temp_audio_path)
+        if not converted_audio_path:
+            os.unlink(temp_audio_path)  # Clean up the original temporary file
+            return jsonify({"error": "Failed to convert audio file"}), 500
     
         # Transcription
         transcription_start_time = time.time()
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 
-        
+
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
