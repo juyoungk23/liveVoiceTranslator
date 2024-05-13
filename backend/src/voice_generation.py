@@ -1,7 +1,9 @@
 import requests
 import logging
 import json  # Import JSON to handle JSON data
+import time
 from .secret_manager import get_secret
+
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
@@ -39,12 +41,14 @@ def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", 
         logger.error("Failed to retrieve API key for voice generation")
         return None
 
+    time_to_retrieve_voice_id = time.time()
     voice_id = get_voice_id(voice_name)
     if not voice_id:
         logger.error(f"Failed to retrieve voice ID for {voice_name}")
         return None
-
     logger.info(f"Voice ID for {voice_name} found: {voice_id}")
+    time_to_retrieve_voice_id = time.time() - time_to_retrieve_voice_id
+    logger.info(f"Time to retrieve voice ID: {time_to_retrieve_voice_id:.2f} seconds")
 
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     payload = {

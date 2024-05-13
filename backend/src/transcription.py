@@ -3,25 +3,32 @@ import logging
 import os
 from google.cloud import speech
 from src.audio_processing import convert_audio_to_wav, convert_audio_to_16_bit, get_audio_info
-from src.secret_manager import get_credentials
+from src.secret_manager import get_credentials, get_secret
 import openai
+import time
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)  # Set the appropriate level if needed
 logger.debug("transcription.py: Logger level is set to debug")
 
-
-def transcribe_audio_whisper(speech_file, openai_api_key):
+def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     """Transcribe audio using OpenAI's Whisper model."""
+    openai_whisper_start_time = time.time()
+
     try:
-        openai.api_key = openai_api_key
+        # Load the OpenAI API key from the secret manager
+        api_key = get_secret(openai_api_key)
+        openai.api_key = api_key  # Set the API key for the OpenAI client
+        time_to_set_api_key = time.time() - openai_whisper_start_time
+        logger.info(f"Time to retrieve OpenAI API key: {time_to_set_api_key:.2f} seconds")
+
         with open(speech_file, 'rb') as audio_file:
             response = openai.Audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file
             )
-            return response.get('text')
+            return response.text
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None

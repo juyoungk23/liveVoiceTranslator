@@ -5,7 +5,7 @@ import time
 import sys
 import tempfile
 import os
-from src import (transcribe_audio_google, translate_text, generate_voice_file,
+from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file,
                  convert_audio_to_wav)
 
 app = Flask(__name__)
@@ -38,7 +38,7 @@ def process_audio():
     output_lang = request.form.get('output_lang', 'es')
     voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')
 
-    app.logger.info(f"Processing audio file with input language {input_lang}, output language {output_lang}, voice ID {voice_id}")
+    app.logger.info(f"Processing audio file with \ninput language {input_lang}, \noutput language {output_lang}, \nvoice ID {voice_id}")
 
     try:
         # Save to a temporary file
@@ -54,7 +54,8 @@ def process_audio():
 
         # Transcription
         transcription_start_time = time.time()
-        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
+        # transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
+        transcribed_text = transcribe_audio_whisper(converted_audio_path)
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500

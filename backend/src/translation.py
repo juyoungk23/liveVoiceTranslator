@@ -15,8 +15,7 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
     """Translates text from one language to another using Google Cloud Translate."""
 
     logger.info(f"Translating text from {source_language} to {target_language}")
-    logger.info(f"Loading credentials for Google Cloud Translate API...")
-
+  
     credentials = get_credentials()
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Translate API")
@@ -25,12 +24,8 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
     client = translate.TranslationServiceClient(credentials=credentials)
     project_id = "70513175587"  # Replace with your actual project ID
     location = 'global'  # 'global' is the default location; specify other regions if necessary
-
-    # parent = client.location_path(project_id, location)
     parent = f"projects/{project_id}/locations/{location}"
 
-    logger.info("Successfully loaded Google Cloud credentials for Translate API")
-    
     # Building the request
     request = {
         "parent": parent,
