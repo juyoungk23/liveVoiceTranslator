@@ -1,7 +1,7 @@
 import logging
 import os
 from google.cloud import speech
-from src.audio_processing import convert_audio_to_wav, convert_audio_to_16_bit, get_audio_info
+from src.audio_processing import convert_audio_to_wav, get_audio_info
 from src.secret_manager import get_gcp_credentials, get_secret
 import openai
 import time
