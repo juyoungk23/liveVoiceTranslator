@@ -27,7 +27,10 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
                 model="whisper-1",
                 file=audio_file
             )
-            return response.text
+
+            transcription = response.text
+            logger.info(f"Transcription successful: {transcription}")
+            return transcription
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None
