@@ -23,30 +23,62 @@ def get_voice_ids(secret_id="ElevenLabsVoiceIDs"):
         logger.error("Failed to decode voice IDs JSON: " + str(e))
         return None
 
-def get_voice_id(voice_name):
+def get_voice_id(voice):
     voice_ids = get_voice_ids()
     if voice_ids is None:
         return None
 
-    voice_id = voice_ids.get(voice_name)
+    voice_id = voice_ids.get(voice)
     if not voice_id:
-        logger.error(f"Voice ID for {voice_name} not found in JSON. Defaulting to Jane.")
+        logger.error(f"Voice ID for {voice} not found in JSON. Defaulting to Jane.")
         return voice_ids.get("Jane")  # Make sure "Jane" exists or handle the default more robustly
 
     return voice_id
 
-def generate_voice_file(text, voice_name, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
+# Define the function to generate voice file using OpenAI's TTS API
+def generate_voice_file_openai(text, voice="alloy", model="tts-1", output_format="mp3", output_file="output_voice.mp3", api_key_secret_id="OpenAI_API_KEY"):
+    api_key = get_secret(api_key_secret_id)
+    if not api_key:
+        logger.error("Failed to retrieve API key for OpenAI voice generation")
+        return None
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": model,
+        "input": text,
+        "voice": voice,
+        "format": output_format
+    }
+
+    url = "https://api.openai.com/v1/audio/speech"
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        with open(output_file, 'wb') as file:
+            file.write(response.content)
+        logger.info(f"Voice file generated successfully: {output_file}")
+        return output_file
+    except Exception as e:
+        logger.error(f"Error in generating OpenAI voice file: {e}")
+        return None
+    
+def generate_voice_file_google(text, voice, api_key_secret_id="ElevenLabsAPIKey", model_id="eleven_multilingual_v2", output_file="output_voice.mp3"):
     api_key = get_secret(api_key_secret_id)
     if not api_key:
         logger.error("Failed to retrieve API key for voice generation")
         return None
 
     time_to_retrieve_voice_id = time.time()
-    voice_id = get_voice_id(voice_name)
+    voice_id = get_voice_id(voice)
     if not voice_id:
-        logger.error(f"Failed to retrieve voice ID for {voice_name}")
+        logger.error(f"Failed to retrieve voice ID for {voice}")
         return None
-    logger.info(f"Voice ID for {voice_name} found: {voice_id}")
+    logger.info(f"Voice ID for {voice} found: {voice_id}")
     time_to_retrieve_voice_id = time.time() - time_to_retrieve_voice_id
     logger.info(f"Time to retrieve voice ID: {time_to_retrieve_voice_id:.2f} seconds")
 

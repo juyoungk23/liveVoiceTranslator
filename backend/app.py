@@ -5,7 +5,7 @@ import time
 import sys
 import tempfile
 import os
-from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file,
+from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_google, generate_voice_file_openai,
                  convert_audio_to_wav)
 
 app = Flask(__name__)
@@ -78,7 +78,9 @@ def process_audio():
 
         # Voice generation
         voice_generation_start_time = time.time()
-        voice_file_path = generate_voice_file(translated_text, voice_name)
+        # voice_file_path = generate_voice_file_google(translated_text, voice_name)
+        voice_file_path = generate_voice_file_openai(translated_text)
+
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500
