@@ -2,6 +2,7 @@
 import logging
 from google.cloud import translate_v3 as translate
 from src.secret_manager import get_gcp_credentials
+import time
 
 # Ensure the logger uses the same configuration
 
