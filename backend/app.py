@@ -62,8 +62,8 @@ def process_audio():
     
         # Transcription
         transcription_start_time = time.time()
-        # transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
-        transcribed_text = transcribe_audio_whisper(converted_audio_path)
+        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
+        # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 
 
         if not transcribed_text:
