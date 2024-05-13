@@ -39,9 +39,9 @@ def process_audio():
 
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
-    voice_id = request.form.get('voice', 'w0FTld3VgsXqUaNGNRnY')
+    voice_name = request.form.get('voice', 'Jane')
 
-    app.logger.info(f"Processing audio file with \ninput language {input_lang}, \noutput language {output_lang}, \nvoice ID {voice_id}")
+    app.logger.info(f"Processing audio file with \ninput language: {input_lang}, \noutput language: {output_lang}, \nvoice name: {voice_name}")
 
     try:
         # Save to a temporary file
@@ -50,11 +50,12 @@ def process_audio():
             temp_audio_path = temp_audio.name
 
         # Convert to the proper WAV format
-        converted_audio_path = convert_audio_to_wav(temp_audio_path)
-        if not converted_audio_path:
-            os.unlink(temp_audio_path)  # Clean up the original temporary file
-            return jsonify({"error": "Failed to convert audio file"}), 500
-
+        # converted_audio_path = convert_audio_to_wav(temp_audio_path)
+        # if not converted_audio_path:
+        #     os.unlink(temp_audio_path)  # Clean up the original temporary file
+        #     return jsonify({"error": "Failed to convert audio file"}), 500
+        converted_audio_path = temp_audio_path
+    
         # Transcription
         transcription_start_time = time.time()
         # transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
@@ -76,7 +77,7 @@ def process_audio():
 
         # Voice generation
         voice_generation_start_time = time.time()
-        voice_file_path = generate_voice_file(translated_text, voice_id)
+        voice_file_path = generate_voice_file(translated_text, voice_name)
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500

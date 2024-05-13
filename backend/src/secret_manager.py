@@ -12,7 +12,7 @@ logger.debug("secret_manager.py: Logger level is set to debug")
 
 # Configure your Google Cloud Project ID here
 PROJECT_ID = "70513175587"
-SECRET_ID = "cloud-translation-service-account"
+GOOGLE_SECRET_ID = "cloud-translation-service-account"
 
 def get_secret(secret_id):
     """Retrieves the latest version of a secret from Google Cloud Secret Manager."""
@@ -26,9 +26,9 @@ def get_secret(secret_id):
         logger.error(f"Failed to access secret {secret_id}: {e}", exc_info=True)
         return None
 
-def get_credentials():
+def get_gcp_credentials():
     """Fetches and constructs service account credentials from a secret."""
-    secret_data = get_secret(SECRET_ID)
+    secret_data = get_secret(GOOGLE_SECRET_ID)
     if not secret_data:
         return None
     try:
@@ -36,5 +36,5 @@ def get_credentials():
         credentials = service_account.Credentials.from_service_account_info(credentials_info)
         return credentials
     except Exception as e:
-        logger.error(f"Failed to construct credentials from secret {SECRET_ID}: {e}", exc_info=True)
+        logger.error(f"Failed to construct credentials from secret {GOOGLE_SECRET_ID}: {e}", exc_info=True)
         return None

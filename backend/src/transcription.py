@@ -2,7 +2,7 @@ import logging
 import os
 from google.cloud import speech
 from src.audio_processing import convert_audio_to_wav, convert_audio_to_16_bit, get_audio_info
-from src.secret_manager import get_credentials, get_secret
+from src.secret_manager import get_gcp_credentials, get_secret
 import openai
 import time
 
@@ -38,7 +38,7 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
 
 def transcribe_audio_google(speech_file, language_code):
     """Transcribe audio using Google Cloud Speech-to-Text API."""
-    credentials = get_credentials()
+    credentials = get_gcp_credentials()
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Speech-to-Text API")
         return None

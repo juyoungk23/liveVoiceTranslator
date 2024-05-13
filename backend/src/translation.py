@@ -1,7 +1,7 @@
 # translation.py
 import logging
 from google.cloud import translate_v3 as translate
-from src.secret_manager import get_credentials
+from src.secret_manager import get_gcp_credentials
 
 # Ensure the logger uses the same configuration
 
@@ -14,13 +14,18 @@ logger.debug("translation.py: Logger level is set to debug")
 def translate_text(text, source_language='en-US', target_language='es', model_id=None):
     """Translates text from one language to another using Google Cloud Translate."""
 
+    translate_start_time = time.time()
+
     logger.info(f"Translating text from {source_language} to {target_language}")
   
-    credentials = get_credentials()
+    credentials = get_gcp_credentials()
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Translate API")
         return None
 
+    time_to_retrieve_credentials = time.time() - translate_start_time
+    logger.info(f"Time to retrieve credentials: {time_to_retrieve_credentials:.2f} seconds")
+    
     client = translate.TranslationServiceClient(credentials=credentials)
     project_id = "70513175587"  # Replace with your actual project ID
     location = 'global'  # 'global' is the default location; specify other regions if necessary
