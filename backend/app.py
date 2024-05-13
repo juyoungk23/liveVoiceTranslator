@@ -26,6 +26,9 @@ def handle_exception(e):
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
+
+    app.logger.info("#" * 50)
+
     overall_start_time = time.time()
 
     if 'audio' not in request.files:
@@ -89,6 +92,7 @@ def process_audio():
             app.logger.error("Generated voice file not found.")
             return jsonify({"error": "Generated voice file not found"}), 500
 
+        app.logger.info("#" * 50)
         return send_file(voice_file_path, as_attachment=True, mimetype='audio/mpeg')
 
 
