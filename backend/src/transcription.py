@@ -17,13 +17,11 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     try:
         # Load the OpenAI API key from the secret manager
         api_key = get_secret(openai_api_key)
-        openai.api_key = api_key  # Set the API key for the OpenAI client
+        client = openai.OpenAI(api_key=api_key)  # Pass the API key directly when initializing the client
 
-        # Measure the time taken to set the API key
         time_to_set_api_key = time.time() - openai_whisper_start_time
         logger.info(f"Time to retrieve and set OpenAI API key: {time_to_set_api_key:.2f} seconds")
 
-        client = openai.OpenAI()  # Create an OpenAI client instance
         with open(speech_file, 'rb') as audio_file:
             response = client.audio.transcriptions.create(
                 model="whisper-1",
@@ -33,6 +31,7 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None
+
 
 def transcribe_audio_google(speech_file, language_code):
     """Transcribe audio using Google Cloud Speech-to-Text API."""
