@@ -36,7 +36,7 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
         return None
 
 
-def transcribe_audio_google(speech_file, language_code, project_id="70513175587", location=".global", phrase_set_id="test"):
+def transcribe_audio_google(speech_file, language_code, project_id="70513175587", location="global", phrase_set_id="test"):
     """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
     credentials = get_gcp_credentials()
     if not credentials:
