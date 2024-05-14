@@ -36,6 +36,54 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
         return None
 
 
+def transcribe_audio_google_backup(speech_file, language_code, project_id="70513175587", location=".global", phrase_set_id="test"):
+    """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
+    credentials = get_gcp_credentials()
+    if not credentials:
+        logger.error("Failed to load Google Cloud credentials for Speech-to-Text API")
+        return None
+
+    client = speech.SpeechClient(credentials=credentials)
+
+    parent = f"projects/{project_id}/locations/{location}"
+    phrase_set_name = f"{parent}/phraseSets/{phrase_set_id}"
+
+    audio_format, sample_rate = get_audio_info(speech_file)
+    if not audio_format or not sample_rate:
+        logger.error("Failed to retrieve audio format or sample rate")
+        return None
+
+    if audio_format not in ['wav', 'mp3']:
+        speech_file = convert_audio_to_wav(speech_file)
+        if not speech_file:
+            return None
+
+    try:
+        with open(speech_file, 'rb') as audio_file:
+            content = audio_file.read()
+
+        audio = speech.RecognitionAudio(content=content)
+        config = speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=sample_rate,
+            language_code=language_code,
+            adaptation=speech.SpeechAdaptation(
+                phrase_set_references=[phrase_set_name]
+            )
+        )
+
+        response = client.recognize(config=config, audio=audio)
+        if not response.results:
+            logger.error("No transcription results returned from Google Speech-to-Text API")
+            return "No text was provided"
+
+        transcript = response.results[0].alternatives[0].transcript
+        logger.info(f"Transcription successful: {transcript}")
+        return transcript
+    except Exception as e:
+        logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
+        return None
+    
 def transcribe_audio_google(speech_file, language_code):
     """Transcribe audio using Google Cloud Speech-to-Text API."""
     credentials = get_gcp_credentials()
