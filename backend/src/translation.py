@@ -17,6 +17,11 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
 
     translate_start_time = time.time()
 
+    # if source and target languages are the same, then simply return the original text
+    if source_language[:2] == target_language[:2]:
+        logger.info("Source and target languages are the same. No translation needed.")
+        return text
+
     logger.info(f"Translating text from {source_language} to {target_language}")
   
     credentials = get_gcp_credentials()
