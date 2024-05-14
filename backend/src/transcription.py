@@ -45,6 +45,7 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
         return None
 
     client = speech.SpeechClient(credentials=credentials)
+    logger.info("Google Cloud Speech-to-Text client created successfully")
 
     parent = f"projects/{project_id}/locations/{location}"
     phrase_set_name = f"{parent}/phraseSets/{phrase_set_id}"
@@ -58,12 +59,16 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
         speech_file = convert_audio_to_wav(speech_file)
         if not speech_file:
             return None
+        
+    logger.info("Audio file preprocessing complete")
 
     try:
         with open(speech_file, 'rb') as audio_file:
             content = audio_file.read()
 
         audio = speech.RecognitionAudio(content=content)
+        logger.info("Audio content loaded successfully")
+
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=sample_rate,
@@ -72,11 +77,13 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
                 phrase_set_references=[phrase_set_name]
             )
         )
+        logger.info("Speech recognition configuration set successfully")
 
         response = client.recognize(config=config, audio=audio)
         if not response.results:
             logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
+        logger.info("Transcription results retrieved successfully")
 
         transcript = response.results[0].alternatives[0].transcript
         logger.info(f"Transcription successful: {transcript}")
