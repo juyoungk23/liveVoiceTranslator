@@ -1,6 +1,7 @@
 import logging
 import os
-from google.cloud import speech
+# from google.cloud import speech
+from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
 from src.secret_manager import get_gcp_credentials, get_secret
 import openai
