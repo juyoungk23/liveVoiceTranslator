@@ -49,6 +49,7 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
 
     parent = f"projects/{project_id}/locations/{location}"
     phrase_set_name = f"{parent}/phraseSets/{phrase_set_id}"
+    phrase_set_name = "projects/70513175587/locations/global/phraseSets/test"
 
     audio_format, sample_rate = get_audio_info(speech_file)
     if not audio_format or not sample_rate:
