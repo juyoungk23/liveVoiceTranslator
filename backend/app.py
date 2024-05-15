@@ -6,7 +6,7 @@ import sys
 import tempfile
 import os
 from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
-                 convert_audio_to_wav, get_last_three_conversations, add_conversation)
+                 convert_audio_to_wav, get_last_three_conversations, add_conversation, delete_all_conversations)
 
 app = Flask(__name__)
 CORS(app) 
@@ -24,8 +24,9 @@ def handle_exception(e):
     app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
     return jsonify({"error": "An internal server error occurred"}), 500
 
-@app.route('/start-new-conversation', methods=['POST'])
+@app.route('/start-new-conversation', methods=['GET'])
 def start_new_conversation():
+    delete_all_conversations()
     return jsonify({"message": "New conversation started. PLACEHOLDER for future functionality."})
 
 @app.route('/process-audio', methods=['POST'])
@@ -65,8 +66,8 @@ def process_audio():
         # Get previous messages
         previousTexts = get_last_three_conversations()
         
-        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
-        # transcribed_text = transcribe_audio_whisper(converted_audio_path)
+        # transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
+        transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts)
 
         add_conversation(transcribed_text, person_type=mode)
 

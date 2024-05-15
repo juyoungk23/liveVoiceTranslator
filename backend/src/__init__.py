@@ -4,4 +4,4 @@ from .secret_manager import get_secret, get_gcp_credentials
 from .transcription import transcribe_audio_whisper, transcribe_audio_google
 from .translation import translate_text
 from src.voice_generation import generate_voice_file_eleven_labs, generate_voice_file_openai
-from .conversation import get_last_three_conversations, add_conversation
+from .conversation import get_last_three_conversations, add_conversation, delete_all_conversations
