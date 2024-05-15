@@ -141,7 +141,7 @@ def transcribe_audio_google_backup(speech_file, language_code):
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
         return None
 
-def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
+def transcribe_audio_whisper(speech_file, previousTexts, openai_api_key="OpenAI_API_KEY"):
     """Transcribe audio using OpenAI's Whisper model."""
     transcription_start_time = time.time()  # Start timing the transcription
 
@@ -159,7 +159,7 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
         logger.info(f"Base transcription: {transcription}")
         logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
 
-        post_processed_text = post_process_using_gpt(transcription, prompt_text, client)
+        post_processed_text = post_process_using_gpt(transcription, prompt_text, client, previousTexts)
         logger.info(f"Post-processed transcription: {post_processed_text}")
         return post_processed_text
         
