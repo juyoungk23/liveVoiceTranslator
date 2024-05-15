@@ -67,7 +67,7 @@ def process_audio():
         previousTexts = get_last_three_conversations()
         
         # transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
-        transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts)
+        transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
 
         add_conversation(transcribed_text, person_type=mode)
 
