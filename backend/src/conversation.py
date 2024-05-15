@@ -23,10 +23,8 @@ def get_last_three_conversations():
     conversations = []
     for doc in results:
         data = doc.to_dict()
-        data['id'] = doc.id  # Include document ID in the data
-        conversations.append(data)
-
-    stringed_conversations = [f"{c['person_type']}: {c['text']}" for c in conversations]
+        data['id'] = doc.id
+        conversations.insert(0, data)
     return conversations
 
 def add_conversation(text, person_type):
