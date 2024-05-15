@@ -20,17 +20,19 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
     try:
         logger.info("Starting post-processing with GPT-4...")
 
+        messages = [
+            {"role": "system", "content": system_prompt},
+            # for each previous text, add it to the messages list.  the content the person_type concantenated with the text
+            *[
+                {"role": "user", "content": f"*{text['person_type']}: {text['text']}"}
+                for text in previousTexts
+            ],
+            {"role": "user", "content": transcription_text}
+        ]
+        logger.info("Messages: " + str(messages))
         response = client.chat.completions.create(
             model=gpt_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                # for each previous text, add it to the messages list.  the content the person_type concantenated with the text
-                *[
-                    {"role": "user", "content": f"*{text['person_type']}: {text['text']}"}
-                    for text in previousTexts
-                ],
-                {"role": "user", "content": transcription_text}
-            ]
+            messages=messages
         )
         refined_transcription = response.choices[0].message.content
         logger.info("Refinement successful.")
