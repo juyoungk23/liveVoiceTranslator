@@ -5,6 +5,7 @@ from src.audio_processing import convert_audio_to_wav, get_audio_info
 from src.secret_manager import get_gcp_credentials, get_secret
 import openai
 import time
+import conversation
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -15,6 +16,10 @@ prompt_text = "You are a helpful translator for a dental clinic. Review the tran
 def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
     post_process_start_time = time.time()  # Start timing the post-processing
+    previousTexts = conversation.ConversationHandler().get_last_three_conversations()
+    for text in previousTexts:
+        logger.info(f"Previous text: {text}")
+
     try:
         logger.info("Starting post-processing with GPT-4...")
 

@@ -9,6 +9,7 @@ Flask-Cors==4.0.0
 google-api-core==2.15.0
 google-auth==2.25.2
 google-cloud-core==2.4.1
+google-cloud-firestore
 google-cloud-speech==2.23.0
 google-cloud-translate
 google-cloud-secret-manager

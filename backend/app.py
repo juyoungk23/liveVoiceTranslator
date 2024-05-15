@@ -6,10 +6,12 @@ import sys
 import tempfile
 import os
 from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
-                 convert_audio_to_wav)
+                 convert_audio_to_wav, ConversationHandler)
 
 app = Flask(__name__)
 CORS(app) 
+
+conversation = ConversationHandler()
 
 # Basic configuration for your application's logger
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -23,6 +25,11 @@ logging.getLogger('urllib3').setLevel(logging.WARNING)
 def handle_exception(e):
     app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
     return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/start-new-conversation', methods=['POST'])
+def start_new_conversation():
+    conversation.delete_all_conversations()
+    return jsonify({"message": "New conversation started."})
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
