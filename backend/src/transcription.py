@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 
 prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation."
 
-def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model="gpt-4o"):
+def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
     post_process_start_time = time.time()  # Start timing the post-processing
 
@@ -62,7 +62,6 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
 
 def transcribe_audio_google(speech_file, language_code, previousTexts, project_id="70513175587", location="global", phrase_set_id="test"):
     """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
-    logger.info("Previous texts:", previousTexts)
     
     credentials = get_gcp_credentials()
     if not credentials:
@@ -116,7 +115,7 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
         logger.info(f"Transcription successful: {transcript}")
         api_key = get_secret("OpenAI_API_KEY")
         client = openai.OpenAI(api_key=api_key)
-        post_processed_text = post_process_using_gpt(transcript, prompt_text, client)
+        post_processed_text = post_process_using_gpt(transcript, prompt_text, client, previousTexts)
         logger.info(f"Post process successful: {post_processed_text}")
         return post_processed_text
     except Exception as e:

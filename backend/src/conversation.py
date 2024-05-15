@@ -27,13 +27,13 @@ def get_last_three_conversations():
         conversations.append(data)
 
     stringed_conversations = [f"{c['person_type']}: {c['text']}" for c in conversations]
-    return stringed_conversations
+    return conversations
 
 def add_conversation(text, person_type):
     """Adds a new conversation to the Firestore collection."""
     db = firestore.Client()
     conversation_collection = db.collection('conversation')
-    
+
     if person_type not in ['doctor', 'patient']:
         raise ValueError("person_type must be 'doctor' or 'patient'")
 
