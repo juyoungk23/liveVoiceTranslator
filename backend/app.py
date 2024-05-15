@@ -115,7 +115,6 @@ def process_audio():
             app.logger.error("Generated voice file not found.")
             return jsonify({"error": "Generated voice file not found"}), 500
 
-        app.logger.info("#" * 100)
         return send_file(voice_file_path, as_attachment=True, mimetype='audio/mpeg')
 
 
