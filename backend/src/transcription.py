@@ -24,9 +24,9 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
             model=gpt_model,
             messages=[
                 {"role": "system", "content": system_prompt},
-                # for each previous text, add it to the messages list. the role is person_type and the content is the text
+                # for each previous text, add it to the messages list.  the content the person_type concantenated with the text
                 *[
-                    {"role": text["person_type"], "content": text["text"]}
+                    {"role": "user", "content": f"*{text['person_type']}: {text['text']}"}
                     for text in previousTexts
                 ],
                 {"role": "user", "content": transcription_text}
