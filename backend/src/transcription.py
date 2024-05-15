@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 
 prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. DO NOT reply with anything other than a revised transcription. If *patient or *doctor is present, do not include it in the transcription. I need to make it absolutely clear that you should NOT generate any thoughts of your own other than the transcription. You should NOT act that you are either the patient or the doctor. Your ONLY job is to transcribe."
 
-def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
+def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, mode, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
 
     try:
@@ -25,7 +25,7 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
                 {"role": "user", "content": f"*{text['person_type']}: {text['text']}"}
                 for text in previousTexts
             ],
-            {"role": "user", "content": transcription_text}
+            {"role": "user", "content": f"*{mode}: {transcription_text}"}
         ]
         logger.info("Messages: " + str(messages))
         response = client.chat.completions.create(
@@ -155,7 +155,7 @@ def transcribe_audio_whisper(speech_file, previousTexts, mode, openai_api_key="O
                 file=audio_file
             )
 
-        transcription = f"*{mode}: {response.text}"
+        transcription = response.text
         logger.info(f"Base transcription: {transcription}")
         logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
 
