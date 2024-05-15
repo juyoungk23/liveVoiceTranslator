@@ -36,6 +36,8 @@ def process_audio():
 
     app.logger.info("#" * 50)
 
+    previousTexts = conversation.get_last_three_conversations()
+
     overall_start_time = time.time()
 
     if 'audio' not in request.files:
@@ -69,7 +71,7 @@ def process_audio():
     
         # Transcription
         transcription_start_time = time.time()
-        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang)
+        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 
 
