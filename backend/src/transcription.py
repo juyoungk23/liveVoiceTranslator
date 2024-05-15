@@ -39,7 +39,7 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
         logger.error(f"Error in post-processing transcription: {e}", exc_info=True)
         return None
     
-def transcribe_audio_google(speech_file, language_code, previousTexts, project_id="70513175587", location="global", phrase_set_id="test"):
+def transcribe_audio_google(speech_file, language_code, previousTexts, mode, project_id="70513175587", location="global", phrase_set_id="test"):
     """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
     transcribe_start_time = time.time()  # Start timing the transcription
 
@@ -90,7 +90,7 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
         logger.info(f"Time to get OpenAI client ONLY: {time_to_get_openai_client:.2f} seconds")
 
         time_to_post_process_start_time = time.time()
-        post_processed_text = post_process_using_gpt(transcript, prompt_text, client, previousTexts)
+        post_processed_text = post_process_using_gpt(transcript, prompt_text, client, previousTexts, mode)
         time_to_post_process = time.time() - time_to_post_process_start_time
         logger.info(f"Post process text successful: {post_processed_text}")
         logger.info(f"Time to post-process transcription ONLY: {time_to_post_process:.2f} seconds")

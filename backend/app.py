@@ -69,6 +69,10 @@ def process_audio():
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts, mode)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
 
+        if "*doctor" in transcribed_text or "*patient" in transcribed_text:
+            # remove it from string
+            transcribed_text = transcribed_text.replace("*doctor", "").replace("*patient", "")
+
         add_conversation(transcribed_text, person_type=mode)
 
         if not transcribed_text:
