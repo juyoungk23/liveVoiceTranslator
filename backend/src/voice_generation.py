@@ -84,7 +84,7 @@ def generate_voice_file_eleven_labs(text, voice, api_key_secret_id="ElevenLabsAP
             "similarity_boost": 0.8,
             "stability": 0.9,
             "style": 0.10,
-            "use_speaker_boost": True
+            "use_speaker_boost": False
         }
     }
     headers = {
