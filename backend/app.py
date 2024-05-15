@@ -6,12 +6,10 @@ import sys
 import tempfile
 import os
 from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
-                 convert_audio_to_wav, ConversationHandler)
+                 convert_audio_to_wav, get_last_three_conversations, add_conversation)
 
 app = Flask(__name__)
 CORS(app) 
-
-conversation = ConversationHandler()
 
 # Basic configuration for your application's logger
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -28,15 +26,14 @@ def handle_exception(e):
 
 @app.route('/start-new-conversation', methods=['POST'])
 def start_new_conversation():
-    conversation.delete_all_conversations()
-    return jsonify({"message": "New conversation started."})
+    return jsonify({"message": "New conversation started. PLACEHOLDER for future functionality."})
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
 
     app.logger.info("#" * 50)
 
-    previousTexts = conversation.get_last_three_conversations()
+    previousTexts = get_last_three_conversations()
     app.logger.info(f"Previous texts: {previousTexts}")
 
     overall_start_time = time.time()
@@ -75,7 +72,7 @@ def process_audio():
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 
-        conversation.add_conversation(transcribed_text, person_type=mode)
+        add_conversation(transcribed_text, person_type=mode)
 
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
