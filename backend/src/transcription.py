@@ -10,12 +10,13 @@ import time
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation."
+prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Do not reply with anything other than a revised transcription."
 
 def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
     post_process_start_time = time.time()  # Start timing the post-processing
 
+# Previous texts: [{'text': 'That sounds quite intensive. What exactly does the treatment involve?', 'person_type': 'patient', 'timestamp': DatetimeWithNanoseconds(2024, 5, 15, 8, 22, 45, 92754, tzinfo=datetime.timezone.utc), 'id': 'aGds7GndWGt0yqyE4QUD'}, {'text': 'Your digital radiographs exhibit multifocal periapical lesions and significant alveolar bone loss, particularly around the bicuspid teeth and molars.', 'person_type': 'patient', 'timestamp': DatetimeWithNanoseconds(2024, 5, 15, 8, 21, 43, 507478, tzinfo=datetime.timezone.utc), 'id': 'WUqcvxH9fzz0ry5kzFKG'}]
     try:
         logger.info("Starting post-processing with GPT-4...")
 
@@ -23,6 +24,11 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
             model=gpt_model,
             messages=[
                 {"role": "system", "content": system_prompt},
+                # for each previous text, add it to the messages list. the role is person_type and the content is the text
+                *[
+                    {"role": text["person_type"], "content": text["text"]}
+                    for text in previousTexts
+                ],
                 {"role": "user", "content": transcription_text}
             ]
         )
