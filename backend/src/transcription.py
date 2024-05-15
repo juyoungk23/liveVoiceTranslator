@@ -159,7 +159,7 @@ def transcribe_audio_whisper(speech_file, previousTexts, mode, openai_api_key="O
         logger.info(f"Base transcription: {transcription}")
         logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
 
-        post_processed_text = post_process_using_gpt(transcription, prompt_text, client, previousTexts)
+        post_processed_text = post_process_using_gpt(transcription, prompt_text, client, previousTexts, mode)
         logger.info(f"Post-processed transcription: {post_processed_text}")
         return post_processed_text
         
