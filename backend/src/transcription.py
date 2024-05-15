@@ -111,7 +111,11 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
 
         transcript = response.results[0].alternatives[0].transcript
         logger.info(f"Transcription successful: {transcript}")
-        return transcript
+        api_key = get_secret("OpenAI_API_KEY")
+        client = openai.OpenAI(api_key=api_key)
+        post_processed_text = post_process_using_gpt(transcript, prompt_text, client)
+        logger.info(f"Post process successful: {post_processed_text}")
+        return post_processed_text
     except Exception as e:
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
         return None
