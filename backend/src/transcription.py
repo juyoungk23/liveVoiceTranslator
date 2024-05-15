@@ -96,7 +96,7 @@ def transcribe_audio_google(speech_file, language_code, project_id="70513175587"
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=sample_rate,
             language_code=language_code,
-            model="medical_dictation",
+            # model="medical_dictation",
             adaptation=speech.SpeechAdaptation(
                 phrase_set_references=[phrase_set_name]
             )
