@@ -10,7 +10,7 @@ import time
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Do not reply with anything other than a revised transcription."
+prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Do not reply with anything other than a revised transcription. If *patient or *doctor is present, do not include it in the transcription."
 
 def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
