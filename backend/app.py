@@ -27,7 +27,7 @@ def handle_exception(e):
 @app.route('/start-new-conversation', methods=['GET'])
 def start_new_conversation():
     delete_all_conversations()
-    return jsonify({"message": "New conversation started. PLACEHOLDER for future functionality."})
+    return jsonify({"message": "New conversation started. Previous conversations deleted"})
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
