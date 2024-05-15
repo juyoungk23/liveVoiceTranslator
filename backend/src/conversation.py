@@ -18,8 +18,8 @@ class ConversationHandler:
         print("All conversations have been deleted.")
 
     def get_last_three_conversations(self):
-        # Query the last three entries with person_type 'Doctor' or 'Patient'
-        query = self.conversation_collection.where('person_type', 'in', ['Doctor', 'Patient'])
+        # Query the last three entries with person_type 'doctor' or 'patient'
+        query = self.conversation_collection.where('person_type', 'in', ['doctor', 'patient'])
         results = query.order_by('timestamp', direction=firestore.Query.DESCENDING).limit(3).stream()
         
         conversations = []
@@ -28,12 +28,13 @@ class ConversationHandler:
             data['id'] = doc.id  # Include document ID in the data
             conversations.append(data)
 
-        return conversations
+        stringed_conversations = [f"{c['person_type']}: {c['text']}" for c in conversations]
+        return stringed_conversations
 
     def add_conversation(self, text, person_type):
         """Adds a new conversation to the Firestore collection."""
-        if person_type not in ['Doctor', 'Patient']:
-            raise ValueError("person_type must be 'Doctor' or 'Patient'")
+        if person_type not in ['doctor', 'patient']:
+            raise ValueError("person_type must be 'doctor' or 'patient'")
 
         # Create a new document
         document_data = {
