@@ -11,6 +11,27 @@ import time
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation."
+
+def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model="gpt-4o"):
+    """Refine transcription using GPT-4."""
+    try:
+        logger.info("Starting post-processing with GPT-4...")
+
+        response = client.chat.completions.create(
+            model=gpt_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": transcription_text}
+            ]
+        )
+        refined_transcription = response.choices[0].message.content
+        logger.info("Refinement successful.")
+        return refined_transcription
+    except Exception as e:
+        logger.error(f"Error in post-processing transcription: {e}", exc_info=True)
+        return None
+    
 def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     """Transcribe audio using OpenAI's Whisper model."""
     openai_whisper_start_time = time.time()
@@ -29,9 +50,17 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
                 file=audio_file
             )
 
-            transcription = response.text
-            logger.info(f"Transcription successful: {transcription}")
-            return transcription
+        transcription = response.text
+        time_to_transcribe = time.time()
+        logger.info(f"Base transcription: {transcription}")
+        logger.info(f"Time taken for base transcription: {time_to_transcribe - time_to_set_api_key:.2f} seconds")
+
+
+        post_processed_text = post_process_using_gpt(transcription, prompt_text, client)
+        time_to_post_process = time.time()
+        logger.info(f"Time taken for post-processing: {time_to_post_process - time_to_set_api_key:.2f} seconds")
+        return post_processed_text
+        
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None
