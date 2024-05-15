@@ -14,9 +14,7 @@ prompt_text = "You are a helpful translator for a dental clinic. Review the tran
 
 def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
-    post_process_start_time = time.time()  # Start timing the post-processing
 
-# Previous texts: [{'text': 'That sounds quite intensive. What exactly does the treatment involve?', 'person_type': 'patient', 'timestamp': DatetimeWithNanoseconds(2024, 5, 15, 8, 22, 45, 92754, tzinfo=datetime.timezone.utc), 'id': 'aGds7GndWGt0yqyE4QUD'}, {'text': 'Your digital radiographs exhibit multifocal periapical lesions and significant alveolar bone loss, particularly around the bicuspid teeth and molars.', 'person_type': 'patient', 'timestamp': DatetimeWithNanoseconds(2024, 5, 15, 8, 21, 43, 507478, tzinfo=datetime.timezone.utc), 'id': 'WUqcvxH9fzz0ry5kzFKG'}]
     try:
         logger.info("Starting post-processing with GPT-4...")
 
@@ -36,70 +34,30 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
         )
         refined_transcription = response.choices[0].message.content
         logger.info("Refinement successful.")
-        logger.info(f"Time taken for post-processing: {time.time() - post_process_start_time:.2f} seconds")  # Log time taken
         return refined_transcription
     except Exception as e:
         logger.error(f"Error in post-processing transcription: {e}", exc_info=True)
         return None
     
-def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
-    """Transcribe audio using OpenAI's Whisper model."""
-    transcription_start_time = time.time()  # Start timing the transcription
-
-    try:
-        api_key = get_secret(openai_api_key)
-        client = openai.OpenAI(api_key=api_key)
-
-        with open(speech_file, 'rb') as audio_file:
-            response = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file
-            )
-
-        transcription = response.text
-        logger.info(f"Base transcription: {transcription}")
-        logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
-
-        post_processed_text = post_process_using_gpt(transcription, prompt_text, client)
-        logger.info(f"Post-processed transcription: {post_processed_text}")
-        return post_processed_text
-        
-    except Exception as e:
-        logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
-        return None
-
 def transcribe_audio_google(speech_file, language_code, previousTexts, project_id="70513175587", location="global", phrase_set_id="test"):
     """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
-    
+    transcribe_start_time = time.time()  # Start timing the transcription
+
     credentials = get_gcp_credentials()
     if not credentials:
         logger.error("Failed to load Google Cloud credentials for Speech-to-Text API")
         return None
 
     client = speech.SpeechClient(credentials=credentials)
+    time_to_get_client = time.time() - transcribe_start_time
+    logger.info(f"Time to get Google Cloud credentials and client ONLY: {time_to_get_client:.2f} seconds")
 
     parent = f"projects/{project_id}/locations/{location}"
     phrase_set_name = f"{parent}/phraseSets/{phrase_set_id}"
     phrase_set_name = "projects/70513175587/locations/global/phraseSets/test"
 
-    audio_processing_start_time = time.time()
-
-    audio_format, sample_rate = get_audio_info(speech_file)
-    logger.info(f"Audio format: {audio_format}, Sample rate: {sample_rate}")
-    
-    if not audio_format or not sample_rate:
-        logger.error("Failed to retrieve audio format or sample rate")
-        return None
-
-    if audio_format not in ['wav', 'mp3']:
-        speech_file = convert_audio_to_wav(speech_file)
-        if not speech_file:
-            return None
-        
-    logger.info("Audio file preprocessing complete")
-    logger.info(f"Time taken for audio processing: {time.time() - audio_processing_start_time:.2f} seconds")
-
     try:
+        transcription_api_start_time = time.time()
         with open(speech_file, 'rb') as audio_file:
             content = audio_file.read()
 
@@ -107,9 +65,9 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=sample_rate,
+            sample_rate_hertz=16000,
             language_code=language_code,
-            # model="medical_dictation",
+            # model="medical_dictation", # does not work with non english languages
             adaptation=speech.SpeechAdaptation(
                 phrase_set_references=[phrase_set_name]
             )
@@ -121,12 +79,24 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
             return "No text was provided"
         
         transcript = response.results[0].alternatives[0].transcript
-        logger.info(f"Transcription successful: {transcript}")
+        transcription_api_end_time = time.time() - transcription_api_start_time
+        logger.info(f"Base transcription: {transcript}")
+        logger.info(f"Time taken for base transcription ONLY: {time.time() - transcription_api_end_time:.2f} seconds")
 
+        time_to_get_openai_client_start_time = time.time()
         api_key = get_secret("OpenAI_API_KEY")
         client = openai.OpenAI(api_key=api_key)
+        time_to_get_openai_client = time.time() - time_to_get_openai_client_start_time
+        logger.info(f"Time to get OpenAI client ONLY: {time_to_get_openai_client:.2f} seconds")
+
+        time_to_post_process_start_time = time.time()
         post_processed_text = post_process_using_gpt(transcript, prompt_text, client, previousTexts)
-        logger.info(f"Post process successful: {post_processed_text}")
+        time_to_post_process = time.time() - time_to_post_process_start_time
+        logger.info(f"Post process text successful: {post_processed_text}")
+        logger.info(f"Time to post-process transcription ONLY: {time_to_post_process:.2f} seconds")
+        
+        total_time_to_transcribe = time.time() - transcribe_start_time
+        logger.info(f"Total time to transcribe: {total_time_to_transcribe:.2f} seconds")
         return post_processed_text
     except Exception as e:
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
@@ -169,4 +139,30 @@ def transcribe_audio_google_backup(speech_file, language_code):
         return transcript
     except Exception as e:
         logger.error(f"Error in Google Cloud transcription: {e}", exc_info=True)
+        return None
+
+def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
+    """Transcribe audio using OpenAI's Whisper model."""
+    transcription_start_time = time.time()  # Start timing the transcription
+
+    try:
+        api_key = get_secret(openai_api_key)
+        client = openai.OpenAI(api_key=api_key)
+
+        with open(speech_file, 'rb') as audio_file:
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+
+        transcription = response.text
+        logger.info(f"Base transcription: {transcription}")
+        logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
+
+        post_processed_text = post_process_using_gpt(transcription, prompt_text, client)
+        logger.info(f"Post-processed transcription: {post_processed_text}")
+        return post_processed_text
+        
+    except Exception as e:
+        logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None

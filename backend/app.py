@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app) 
 
 # Basic configuration for your application's logger
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(name)s - %(levelname)s - %(message)s')
 
 # Setting third-party libraries' loggers to a higher log level
 logging.getLogger('google.auth').setLevel(logging.WARNING)
@@ -31,7 +31,7 @@ def start_new_conversation():
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
 
-    app.logger.info("#" * 50)
+    app.logger.info("#" * 100)
 
     overall_start_time = time.time()
 
@@ -44,13 +44,11 @@ def process_audio():
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
     voice_name = request.form.get('voice', 'Jane')
-    mode = request.form.get('mode', 'person2')
+    mode = request.form.get('mode', 'person2') # TODO: Change to 'patient' after testing
 
-    if mode == 'person1': 
-        mode = 'doctor' 
-    else: mode = 'patient'
+    mode = 'doctor' if mode == 'person1' else 'patient'
 
-    app.logger.info(f"Processing audio file with \ninput language: {input_lang}, \noutput language: {output_lang}, \nvoice name: {voice_name}, \nmode: {mode}")
+    app.logger.info(f"RECEIVED REQUEST: \nInput language: {input_lang}, \nOutput language: {output_lang}, \nVoice: {voice_name}, \nMode: {mode}")
 
     try:
         # Save to a temporary file
@@ -64,11 +62,9 @@ def process_audio():
             os.unlink(temp_audio_path)  # Clean up the original temporary file
             return jsonify({"error": "Failed to convert audio file"}), 500
     
+        # Get previous messages
         previousTexts = get_last_three_conversations()
         
-        # Transcription
-        transcription_start_time = time.time()
-
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 
@@ -77,8 +73,6 @@ def process_audio():
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
-        transcribe_time = time.time() - transcription_start_time
-        app.logger.info(f"Transcription took {transcribe_time:.2f} seconds")
 
         # Translation
         translation_start_time = time.time()
@@ -104,7 +98,7 @@ def process_audio():
         app.logger.info(f"Voice generation took {voice_time:.2f} seconds")
 
         overall_time = time.time() - overall_start_time
-        app.logger.info(f"Overall processing took {overall_time:.2f} seconds")
+        app.logger.info(f"OVERALL PROCESSING TIME: {overall_time:.2f} seconds")
 
         os.unlink(converted_audio_path)  # Clean up the converted file
 
@@ -112,7 +106,7 @@ def process_audio():
             app.logger.error("Generated voice file not found.")
             return jsonify({"error": "Generated voice file not found"}), 500
 
-        app.logger.info("#" * 50)
+        app.logger.info("#" * 100)
         return send_file(voice_file_path, as_attachment=True, mimetype='audio/mpeg')
 
 
