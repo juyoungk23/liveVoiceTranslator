@@ -1,6 +1,5 @@
 import logging
 import os
-# from google.cloud import speech
 from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
 from src.secret_manager import get_gcp_credentials, get_secret
@@ -15,6 +14,7 @@ prompt_text = "You are a helpful translator for a dental clinic. Review the tran
 
 def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
+    post_process_start_time = time.time()  # Start timing the post-processing
     try:
         logger.info("Starting post-processing with GPT-4...")
 
@@ -27,6 +27,7 @@ def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model=
         )
         refined_transcription = response.choices[0].message.content
         logger.info("Refinement successful.")
+        logger.info(f"Time taken for post-processing: {time.time() - post_process_start_time:.2f} seconds")  # Log time taken
         return refined_transcription
     except Exception as e:
         logger.error(f"Error in post-processing transcription: {e}", exc_info=True)
@@ -34,15 +35,11 @@ def post_process_using_gpt(transcription_text, system_prompt, client, gpt_model=
     
 def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
     """Transcribe audio using OpenAI's Whisper model."""
-    openai_whisper_start_time = time.time()
+    transcription_start_time = time.time()  # Start timing the transcription
 
     try:
-        # Load the OpenAI API key from the secret manager
         api_key = get_secret(openai_api_key)
-        client = openai.OpenAI(api_key=api_key)  # Pass the API key directly when initializing the client
-
-        time_to_set_api_key = time.time() - openai_whisper_start_time
-        logger.info(f"Time to retrieve and set OpenAI API key: {time_to_set_api_key:.2f} seconds")
+        client = openai.OpenAI(api_key=api_key)
 
         with open(speech_file, 'rb') as audio_file:
             response = client.audio.transcriptions.create(
@@ -51,20 +48,16 @@ def transcribe_audio_whisper(speech_file, openai_api_key="OpenAI_API_KEY"):
             )
 
         transcription = response.text
-        time_to_transcribe = time.time()
         logger.info(f"Base transcription: {transcription}")
-        logger.info(f"Time taken for base transcription: {time_to_transcribe - time_to_set_api_key:.2f} seconds")
-
+        logger.info(f"Time taken for base transcription: {time.time() - transcription_start_time:.2f} seconds")  # Log time taken
 
         post_processed_text = post_process_using_gpt(transcription, prompt_text, client)
-        time_to_post_process = time.time()
-        logger.info(f"Time taken for post-processing: {time_to_post_process - time_to_set_api_key:.2f} seconds")
+        logger.info(f"Post-processed transcription: {post_processed_text}")
         return post_processed_text
         
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
         return None
-
 
 def transcribe_audio_google(speech_file, language_code, project_id="70513175587", location="global", phrase_set_id="test"):
     """Transcribe audio using Google Cloud Speech-to-Text API with model adaptation."""
