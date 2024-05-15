@@ -22,14 +22,10 @@ def get_last_three_conversations():
     time_to_get_conversations = time.time()
     db = firestore.Client()
     conversation_collection = db.collection('conversation')
-    time_to_retrieve_collection = time.time() - time_to_get_conversations
-    logger.info(f"Time to retrieve Firestore collection ONLY: {time_to_retrieve_collection:.2f} seconds")
 
     # Query the last three entries with person_type 'doctor' or 'patient'
     query = conversation_collection.where('person_type', 'in', ['doctor', 'patient'])
     results = query.order_by('timestamp', direction=firestore.Query.DESCENDING).limit(3).stream()
-    time_to_query = time.time() - time_to_retrieve_collection
-    logger.info(f"Time to query Firestore ONLY: {time_to_query:.2f} seconds")
 
     conversations = []
     for doc in results:

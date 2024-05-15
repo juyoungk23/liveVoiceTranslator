@@ -25,7 +25,7 @@ def post_process_using_gpt(transcription_text, system_prompt, client, previousTe
                 {"role": "user", "content": f"*{text['person_type']}: {text['text']}"}
                 for text in previousTexts
             ],
-            {"role": "system", "content": f"TEXT TO TRANSCRIBE ONLY => *{mode}: {transcription_text}"}
+            {"role": "system", "content": f"TRANSCRIBE THE FOLLOWING TEXT => *{mode}: {transcription_text}"}
         ]
         logger.info("Messages: " + str(messages))
         response = client.chat.completions.create(

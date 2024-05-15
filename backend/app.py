@@ -67,15 +67,15 @@ def process_audio():
         previousTexts = get_last_three_conversations()
         
         # if input text is english use whisper, else use google
-        if input_lang == 'en-US':
-            transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
-        else: 
-            transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts, mode)
+        # if input_lang == 'en-US':
+        #     transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
+        # else: 
+        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts, mode)
 
 
-        if "*doctor" in transcribed_text or "*patient" in transcribed_text:
+        if "*doctor" in transcribed_text or "*patient" in transcribed_text or "TRANSCRIBE THE FOLLOWING TEXT =>" in transcribed_text:
             # remove it from string
-            transcribed_text = transcribed_text.replace("*doctor", "").replace("*patient", "")
+            transcribed_text = transcribed_text.replace("*doctor", "").replace("*patient", "").replace("TRANSCRIBE THE FOLLOWING TEXT =>", "")
 
         add_conversation(transcribed_text, person_type=mode)
 
