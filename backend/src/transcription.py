@@ -77,13 +77,16 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
         return None
 
     client = speech.SpeechClient(credentials=credentials)
-    logger.info("Google Cloud Speech-to-Text client created successfully")
 
     parent = f"projects/{project_id}/locations/{location}"
     phrase_set_name = f"{parent}/phraseSets/{phrase_set_id}"
     phrase_set_name = "projects/70513175587/locations/global/phraseSets/test"
 
+    audio_processing_start_time = time.time()
+
     audio_format, sample_rate = get_audio_info(speech_file)
+    logger.info(f"Audio format: {audio_format}, Sample rate: {sample_rate}")
+    
     if not audio_format or not sample_rate:
         logger.error("Failed to retrieve audio format or sample rate")
         return None
@@ -94,13 +97,13 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
             return None
         
     logger.info("Audio file preprocessing complete")
+    logger.info(f"Time taken for audio processing: {time.time() - audio_processing_start_time:.2f} seconds")
 
     try:
         with open(speech_file, 'rb') as audio_file:
             content = audio_file.read()
 
         audio = speech.RecognitionAudio(content=content)
-        logger.info("Audio content loaded successfully")
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -111,16 +114,15 @@ def transcribe_audio_google(speech_file, language_code, previousTexts, project_i
                 phrase_set_references=[phrase_set_name]
             )
         )
-        logger.info("Speech recognition configuration set successfully")
 
         response = client.recognize(config=config, audio=audio)
         if not response.results:
             logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
-        logger.info("Transcription results retrieved successfully")
-
+        
         transcript = response.results[0].alternatives[0].transcript
         logger.info(f"Transcription successful: {transcript}")
+
         api_key = get_secret("OpenAI_API_KEY")
         client = openai.OpenAI(api_key=api_key)
         post_processed_text = post_process_using_gpt(transcript, prompt_text, client, previousTexts)

@@ -33,9 +33,6 @@ def process_audio():
 
     app.logger.info("#" * 50)
 
-    previousTexts = get_last_three_conversations()
-    app.logger.info(f"Previous texts: {previousTexts}")
-
     overall_start_time = time.time()
 
     if 'audio' not in request.files:
@@ -67,8 +64,11 @@ def process_audio():
             os.unlink(temp_audio_path)  # Clean up the original temporary file
             return jsonify({"error": "Failed to convert audio file"}), 500
     
+        previousTexts = get_last_three_conversations()
+        
         # Transcription
         transcription_start_time = time.time()
+
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts)
         # transcribed_text = transcribe_audio_whisper(converted_audio_path)
 

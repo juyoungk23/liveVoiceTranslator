@@ -4,6 +4,7 @@ from pydub.silence import detect_nonsilent
 from pydub.exceptions import CouldntDecodeError
 from pydub.utils import mediainfo
 import logging
+import time
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)
@@ -38,11 +39,16 @@ def trim_silence(audio_segment, silence_threshold=-50.0, chunk_size=10):
     :param chunk_size: The size of chunks to use in milliseconds for silence detection
     :return: AudioSegment without silence
     """
+    trim_silence_start_time = time.time()
+
     nonsilent_parts = detect_nonsilent(audio_segment, min_silence_len=chunk_size,
                                        silence_thresh=silence_threshold)
     trimmed_audio = audio_segment[:0]  # Create an empty audio segment
     for start_i, end_i in nonsilent_parts:
         trimmed_audio += audio_segment[start_i:end_i]  # Concatenate non-silent audio chunks
+    
+    time_to_trim_silence = time.time() - trim_silence_start_time
+    logger.info(f"Time to trim silence: {time_to_trim_silence:.2f} seconds")
     return trimmed_audio
 
 def get_audio_info(speech_file):
