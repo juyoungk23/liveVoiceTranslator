@@ -10,7 +10,7 @@ import time
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Do not reply with anything other than a revised transcription. If *patient or *doctor is present, do not include it in the transcription."
+prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. DO NOT reply with anything other than a revised transcription. If *patient or *doctor is present, do not include it in the transcription. I need to make it absolutely clear that you should NOT generate any thoughts of your own other than the transcription. You should NOT act that you are either the patient or the doctor. Your ONLY job is to transcribe."
 
 def post_process_using_gpt(transcription_text, system_prompt, client, previousTexts, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
