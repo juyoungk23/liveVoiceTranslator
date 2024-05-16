@@ -44,7 +44,7 @@ def process_audio():
 
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
-    voice_name = request.form.get('voice', 'Jane')
+    voice_name = request.form.get('voice', 'Jarvis')
     mode = request.form.get('mode', 'person2') # TODO: Change to 'patient' after testing
 
     mode = 'doctor' if mode == 'person1' else 'patient'
@@ -100,7 +100,9 @@ def process_audio():
         # if mode == 'doctor':
         #     voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
         # else:
-        voice_file_path = generate_voice_file_openai(translated_text)
+        #     voice_file_path = generate_voice_file_openai(translated_text)
+
+        voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
 
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
