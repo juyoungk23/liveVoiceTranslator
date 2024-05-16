@@ -1,20 +1,15 @@
-# translation.py
 import logging
-from google.cloud import translate_v3 as translate
-from src.secret_manager import get_gcp_credentials
 import time
+from credentials import Credentials  # Adjusted import for the centralized Credentials class
 
 # Ensure the logger uses the same configuration
-
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Set the appropriate level if needed
-logger.debug("translation.py: Logger level is set to debug")
+logger.setLevel(logging.INFO)
 
-
+credentials = Credentials()  # Instantiate credentials for centralized management
 
 def translate_text(text, source_language='en-US', target_language='es', model_id=None):
     """Translates text from one language to another using Google Cloud Translate."""
-
     translate_start_time = time.time()
 
     # if source and target languages are the same, then simply return the original text
@@ -23,18 +18,14 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
         return text
 
     logger.info(f"Translating text from {source_language} to {target_language}")
-  
-    credentials = get_gcp_credentials()
-    if not credentials:
+
+    client = credentials.get_translation_client()  # Use centralized method to get Translation client
+    if not client:
         logger.error("Failed to load Google Cloud credentials for Translate API")
         return None
 
-    time_to_retrieve_credentials = time.time() - translate_start_time
-    logger.info(f"Time to retrieve credentials: {time_to_retrieve_credentials:.2f} seconds")
-    
-    client = translate.TranslationServiceClient(credentials=credentials)
-    project_id = "70513175587"  # Replace with your actual project ID
-    location = 'global'  # 'global' is the default location; specify other regions if necessary
+    project_id = credentials.project_id  # Use the centralized project_id
+    location = credentials.location  # Use the centralized location
     parent = f"projects/{project_id}/locations/{location}"
 
     # Building the request
@@ -48,15 +39,19 @@ def translate_text(text, source_language='en-US', target_language='es', model_id
 
     # Adding the model to the request if a custom model ID is provided
     if model_id:
-        request["model"] = f"projects/{project_id}/locations/{location}/models/{model_id}"
+        request["model"] = f"{parent}/models/{model_id}"
 
     try:
         response = client.translate_text(request)
         if response.translations:
-
             translation = response.translations[0].translated_text
             logger.info(f"Translated text: {translation}")
             return translation
     except Exception as e:
         logger.error(f"Failed to translate text: {e}", exc_info=True)
         return None
+
+    finally:
+        time_to_translate = time.time() - translate_start_time
+        logger.info(f"Time to translate: {time_to_translate:.2f} seconds")
+
