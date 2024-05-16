@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 credentials = Credentials()  # Create a Credentials instance for centralized management
 
 def get_voice_id(voice, secret_id="ElevenLabsVoiceIDs"):
-    voice_ids_json = credentials.get_secret(secret_id)  # Use centralized method to get secret
+    voice_ids_json = credentials._fetch_secret(secret_id)  # Use centralized method to get secret
     if not voice_ids_json:
         logger.error("Failed to retrieve voice IDs JSON from Google Secret Manager.")
         return None
