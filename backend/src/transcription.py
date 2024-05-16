@@ -34,39 +34,48 @@ def post_process_using_gpt(transcription_text, previous_texts, mode, gpt_model="
 
 def transcribe_audio_google(speech_file, language_code, previous_texts, mode, phrase_set_id="test"):
     """Transcribes audio using Google Cloud Speech-to-Text API."""
+
+    time_to_get_client = time.time()
     speech_client = credentials.get_speech_client()
+    time_to_get_client = time.time() - time_to_get_client
+    logger.info(f"Time to get Google Cloud Speech-to-Text client ONLY: {time_to_get_client:.2f} seconds")
+
     if not speech_client:
         logger.error("Failed to load Google Cloud Speech-to-Text client")
         return None
 
     try:
-        audio_format, sample_rate = get_audio_info(speech_file)
-        if audio_format not in ['wav', 'mp3']:
-            speech_file = convert_audio_to_wav(speech_file)
-        if not speech_file:
-            return None
+
 
         with open(speech_file, 'rb') as audio_file:
             content = audio_file.read()
         audio = speech.RecognitionAudio(content=content)
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=sample_rate,
+            sample_rate_hertz=16000,
             language_code=language_code,
             adaptation=speech.SpeechAdaptation(phrase_set_references=[
                 f"projects/{credentials.project_id}/locations/{credentials.location}/phraseSets/{phrase_set_id}"
             ])
         )
 
-        transcription_start_time = time.time()
+        time_to_get_transcription = time.time()
         response = speech_client.recognize(config=config, audio=audio)
+        time_to_get_transcription = time.time() - time_to_get_transcription
+        logger.info(f"Time to get transcription: {time_to_get_transcription:.2f} seconds")
+    
+                    
         if not response.results:
             logger.error("No transcription results returned from Google Speech-to-Text API")
             return "No text was provided"
 
         transcript = response.results[0].alternatives[0].transcript
         logger.info(f"Transcription successful: {transcript}")
+
+        time_to_post_process = time.time()
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
+        time_to_post_process = time.time() - time_to_post_process
+        logger.info(f"Time to post-process: {time_to_post_process:.2f} seconds")
         logger.info(f"Post-processed transcription: {post_processed_text}")
         return post_processed_text
     except Exception as e:

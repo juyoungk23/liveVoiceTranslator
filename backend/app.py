@@ -58,11 +58,14 @@ def process_audio():
             temp_audio_path = temp_audio.name
 
         # Convert to the proper WAV format
+        time_to_convert = time.time()
         converted_audio_path = convert_audio_to_wav(temp_audio_path)
         if not converted_audio_path:
             os.unlink(temp_audio_path)  # Clean up the original temporary file
             return jsonify({"error": "Failed to convert audio file"}), 500
-    
+        convert_time = time.time() - time_to_convert
+        app.logger.info(f"Audio conversion took {convert_time:.2f} seconds")
+
         # Get previous messages
         previousTexts = get_last_three_conversations()
         
@@ -72,9 +75,8 @@ def process_audio():
         # else: 
         transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts, mode)
 
-
+        # remove unwanted text
         if "*doctor" in transcribed_text or "*patient" in transcribed_text or "TRANSCRIBE THE FOLLOWING TEXT =>" in transcribed_text:
-            # remove it from string
             transcribed_text = transcribed_text.replace("*doctor", "").replace("*patient", "").replace("TRANSCRIBE THE FOLLOWING TEXT =>", "")
 
         add_conversation(transcribed_text, person_type=mode)
@@ -95,10 +97,10 @@ def process_audio():
         # Voice generation
         voice_generation_start_time = time.time()
 
-        if mode == 'doctor':
-            voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
-        else:
-            voice_file_path = generate_voice_file_openai(translated_text)
+        # if mode == 'doctor':
+        #     voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
+        # else:
+        voice_file_path = generate_voice_file_openai(translated_text)
 
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file

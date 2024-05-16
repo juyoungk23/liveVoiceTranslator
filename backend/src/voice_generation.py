@@ -24,7 +24,7 @@ def get_voice_id(voice, secret_id="ElevenLabsVoiceIDs"):
         logger.error(f"Failed to decode voice IDs JSON: {e}")
         return None
 
-def generate_voice_file_openai(text, voice="nova", model="tts-1", output_file="output_voice.mp3"):
+def generate_voice_file_openai(text, voice="echo", model="tts-1", output_file="output_voice.mp3"):
     api_key = credentials.get_openai_api_key()  # Use centralized method to get API key
     if not api_key:
         logger.error("Failed to retrieve API key for OpenAI voice generation")

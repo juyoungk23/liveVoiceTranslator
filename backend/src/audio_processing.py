@@ -29,8 +29,6 @@ def convert_audio_to_wav(input_file):
         logger.error(f"Error in converting audio file: {e}", exc_info=True)
         return None
     
-    time_to_convert_audio = time.time() - convert_audio_start_time
-    logger.info(f"Time to convert audio: {time_to_convert_audio:.2f} seconds")
     return output_file
 
 def trim_silence(audio_segment, silence_threshold=-50.0, chunk_size=10):
