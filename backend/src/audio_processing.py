@@ -5,6 +5,7 @@ import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 def convert_audio_to_wav(input_file):
     """Converts any audio file to WAV format with 16-bit samples, 16 kHz, mono, and adjusts silence trimming using FFmpeg."""
     output_file = os.path.splitext(input_file)[0] + '_converted.wav'
@@ -41,3 +42,14 @@ def convert_audio_to_wav(input_file):
     conversion_time = time.time() - convert_audio_start_time
     logger.info(f"Audio file converted in {conversion_time:.2f} seconds.")
     return output_file
+
+
+def get_audio_info(speech_file):
+    """Retrieves basic information about an audio file using FFprobe."""
+    command = ['ffprobe', '-v', 'error', '-show_entries', 'format=format_name:stream=sample_rate', '-of', 'default=noprint_wrappers=1', speech_file]
+    try:
+        result = subprocess.run(command, text=True, capture_output=True, check=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        logger.error(f"FFprobe error: {e.stderr}")
+        return None
