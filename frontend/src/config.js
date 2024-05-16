@@ -3,6 +3,7 @@ export const voices = [
   { label: "Jessica" },
   { label: "Aditi" },
   { label: "Jane" },
+  { label: "Jarvis" },
 ];
 
 export const languages = [
