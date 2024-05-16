@@ -2,7 +2,7 @@ import logging
 import time
 from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
-from secret_manager import Credentials
+from .secret_manager import Credentials
 
 # Configure the logger
 logger = logging.getLogger(__name__)

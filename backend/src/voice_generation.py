@@ -3,7 +3,7 @@ import logging
 import json 
 import time
 import openai
-from secret_manager import Credentials  # Adjusted import to use the centralized Credentials class
+from .secret_manager import Credentials  # Adjusted import to use the centralized Credentials class
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)

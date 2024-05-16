@@ -1,6 +1,6 @@
 import logging
 import time
-from credentials import Credentials  # Adjusted import for the centralized Credentials class
+from .secret_manager import Credentials  # Adjusted import for the centralized Credentials class
 
 # Ensure the logger uses the same configuration
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@ import datetime
 import logging
 import time
 import google.cloud.firestore as firestore
-from secret_manager import Credentials  # Adjusted import for the centralized Credentials class
+from .secret_manager import Credentials  # Adjusted import for the centralized Credentials class
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
