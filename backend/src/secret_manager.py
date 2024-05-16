@@ -18,10 +18,11 @@ class Credentials:
         
         self._gcp_credentials = None
         self._openai_api_key = None
+        self._elevenlabs_api_key = None
         self._speech_client = None
         self._translation_client = None
         self._openai_client = None
-        self._elevenlabs_client = None
+        
         self._firestore_client = None
 
     def _fetch_secret(self, secret_id):
