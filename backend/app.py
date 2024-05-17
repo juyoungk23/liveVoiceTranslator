@@ -59,7 +59,8 @@ def process_audio():
 
         # Convert to the proper WAV format
         time_to_convert = time.time()
-        converted_audio_path = convert_audio_to_wav(temp_audio_path)
+        # converted_audio_path = convert_audio_to_wav(temp_audio_path)
+        converted_audio_path = temp_audio_path
         if not converted_audio_path:
             os.unlink(temp_audio_path)  # Clean up the original temporary file
             return jsonify({"error": "Failed to convert audio file"}), 500
