@@ -3,6 +3,7 @@ import json
 from google.cloud import secretmanager, speech_v1p1beta1 as speech, translate_v3 as translate, firestore
 from google.oauth2 import service_account
 import openai
+from deepgram import Deepgram
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -14,6 +15,7 @@ class Credentials:
         self.google_secret_id = "cloud-translation-service-account"
         self.openai_api_key_secret_id = "OpenAI_API_KEY"
         self.elevenlabs_key_secret_id = "ElevenLabsAPIKey"
+        self.deepgram_key_secret_id = "DeepgramTestAPIKey"
         self.client = secretmanager.SecretManagerServiceClient()
         
         self._gcp_credentials = None
@@ -22,7 +24,7 @@ class Credentials:
         self._speech_client = None
         self._translation_client = None
         self._openai_client = None
-        
+        self._deepgram_client = None
         self._firestore_client = None
 
     def _fetch_secret(self, secret_id):
@@ -77,4 +79,9 @@ class Credentials:
                 self._firestore_client = firestore.Client()
         return self._firestore_client
 
-    
+    def get_deepgram_client(self):
+        if not self._deepgram_client:
+            deepgram_api_key = self._fetch_secret(self.deepgram_key_secret_id)
+            if deepgram_api_key:
+                self._deepgram_client = Deepgram(deepgram_api_key)
+        return self._deepgram_client

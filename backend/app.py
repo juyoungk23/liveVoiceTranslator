@@ -5,7 +5,7 @@ import time
 import sys
 import tempfile
 import os
-from src import (transcribe_audio_google, transcribe_audio_whisper, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
+from src import (transcribe_audio_google, transcribe_audio_whisper, transcribe_audio_deepgram_local, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
                  convert_audio_to_wav, get_last_three_conversations, add_conversation, delete_all_conversations)
 
 app = Flask(__name__)
@@ -73,7 +73,10 @@ def process_audio():
         # if input_lang == 'en-US':
         #     transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
         # else: 
-        transcribed_text = transcribe_audio_google(converted_audio_path, input_lang, previousTexts, mode)
+        time_to_transcribe = time.time()
+        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, previousTexts, mode)
+        time_to_transcribe = time.time() - time_to_transcribe
+        app.logger.info(f"Transcription took {time_to_transcribe:.2f} seconds")
 
         # remove unwanted text
         if "*doctor" in transcribed_text or "*patient" in transcribed_text or "TRANSCRIBE THE FOLLOWING TEXT =>" in transcribed_text:

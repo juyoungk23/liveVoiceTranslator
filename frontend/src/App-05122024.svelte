@@ -104,7 +104,6 @@
       currentSettings.outputLanguage.substring(0, 2)
     );
     formData.append("voice", currentSettings.voice);
-    formData.append("mode", $mode);
 
     try {
       const response = await fetch(serverUrl, {
@@ -126,25 +125,6 @@
     }
     isSubmitting.set(false);
     isLoading.set(false);
-  }
-
-  function startNewConversation() {
-    fetch("https://api.thevoicetranslator.com/start-new-conversation", {
-      method: "GET",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("Failed to start new conversation.");
-      });
   }
 </script>
 
@@ -228,8 +208,6 @@
       <audio src={$audioUrl} controls on:loadedmetadata={playAudio}></audio>
     </div>
   {/if}
-
-  <button on:click={startNewConversation}>Start New Conversation</button>
 </div>
 
 <style>
