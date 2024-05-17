@@ -67,6 +67,7 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang
         response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
         time_to_transcribe = time.time() - time_to_transcribe
         transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
+        print("Transcript: ", transcript)
         logger.info(f"Base transcription using Deepgram (local): {transcript}")
         logger.info(f"Time to transcribe base text: {time_to_transcribe:.2f} seconds")
 
