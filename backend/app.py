@@ -107,8 +107,9 @@ def process_audio():
         # else:
         #     voice_file_path = generate_voice_file_openai(translated_text)
 
-        voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
-
+        voice_file_path = generate_voice_file_openai(translated_text)
+    
+    
         if not voice_file_path:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Voice generation failed"}), 500

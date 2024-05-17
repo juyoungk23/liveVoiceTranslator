@@ -57,6 +57,8 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang
         }
 
         #STEP 2: Configure Deepgram options for audio analysis
+
+
         options = PrerecordedOptions(
             model="nova-2",
             smart_format=True,
