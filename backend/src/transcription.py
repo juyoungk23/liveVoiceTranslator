@@ -3,7 +3,7 @@ import time
 from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
 from .secret_manager import Credentials
-from deepgram import DeepgramClient, PrerecordedOptions, FileSource
+from deepgram import DeepgramClient, PrerecordedOptions
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -137,9 +137,9 @@ def transcribe_audio_deepgram_local(speech_file, previous_texts, mode):
         with open(speech_file, 'rb') as audio:
             buffer_data = audio.read()
 
-        payload = FileSource(
-            buffer=buffer_data,
-        )
+        payload = {
+            "buffer": buffer_data
+        }
 
         options = PrerecordedOptions(
             model="nova-2",
