@@ -3,6 +3,7 @@ import time
 from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
 from .secret_manager import Credentials
+from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -111,11 +112,11 @@ def transcribe_audio_deepgram_remote(audio_url, previous_texts, mode):
         return None
 
     try:
-        options = {
-            "model": "nova-2",
-            "smart_format": True
-        }
-        response = deepgram_client.transcription.pre_recorded(audio_url, options)
+        options = PrerecordedOptions(
+            model="nova-2",
+            smart_format=True,
+        )
+        response = deepgram_client.transcription.pre_recorded({"url": audio_url}, options)
         transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
         logger.info(f"Base transcription using Deepgram (remote): {transcript}")
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
@@ -136,11 +137,15 @@ def transcribe_audio_deepgram_local(speech_file, previous_texts, mode):
         with open(speech_file, 'rb') as audio:
             buffer_data = audio.read()
 
-        options = {
-            "model": "nova-2",
-            "smart_format": True
-        }
-        response = deepgram_client.transcription.pre_recorded({"buffer": buffer_data}, options)
+        payload = FileSource(
+            buffer=buffer_data,
+        )
+
+        options = PrerecordedOptions(
+            model="nova-2",
+            smart_format=True,
+        )
+        response = deepgram_client.transcription.pre_recorded(payload, options)
         transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
         logger.info(f"Base transcription using Deepgram (local): {transcript}")
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
