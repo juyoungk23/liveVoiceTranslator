@@ -12,16 +12,17 @@ from deepgram import (
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-prompt_text = "You are a helpful translator for a dental clinic. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. DO NOT reply with anything other than a revised transcription. If *patient or *doctor is present, do not include it in the transcription."
 
 credentials = Credentials()  # Instantiate once and use throughout
 
-def post_process_using_gpt(transcription_text, previous_texts, mode, gpt_model="gpt-4o"):
+def post_process_using_gpt(transcription_text, previous_texts, mode, input_lang, output_lang, gpt_model="gpt-4o"):
     """Refine transcription using GPT-4."""
     client = credentials.get_openai_client()
     if not client:
         logger.error("Failed to load OpenAI client")
         return None
+
+    prompt_text = f"You are a helpful translator for a dental clinic, translating from {input_lang} to {output_lang}. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Then give your best, most accurate, most contextually aware translation you can. DO NOT reply with anything other than the final translation. You are not to give your own generated thoughts, but only verify the transcription and translate the given text. If *patient or *doctor is present, do not include it in the result text."
 
     messages = [{"role": "system", "content": prompt_text}] + [
         {"role": "user", "content": f"*{text['person_type']}: {text['text']}"} for text in previous_texts
@@ -37,7 +38,7 @@ def post_process_using_gpt(transcription_text, previous_texts, mode, gpt_model="
         return None
     
 
-def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode):
+def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang, output_lang):
     """Transcribe audio using Deepgram API from a remote URL."""
     deepgram_client = credentials.get_deepgram_client()
     if not deepgram_client:
@@ -62,11 +63,18 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode):
         )
 
         # STEP 3: Call the transcribe_file method with the text payload and options
+        time_to_transcribe = time.time()
         response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
+        time_to_transcribe = time.time() - time_to_transcribe
         transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
-        logger.info(f"Base transcription using Deepgram (remote): {transcript}")
-        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
+        logger.info(f"Base transcription using Deepgram (local): {transcript}")
+        logger.info(f"Time to transcribe base text: {time_to_transcribe:.2f} seconds")
+
+        time_to_post_process = time.time()
+        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode, input_lang, output_lang)
+        time_to_post_process = time.time() - time_to_post_process
         logger.info(f"Post-processed transcription using Deepgram (remote): {post_processed_text}")
+        logger.info(f"Time to post-process: {time_to_post_process:.2f} seconds")
         return post_processed_text
 
     except Exception as e:

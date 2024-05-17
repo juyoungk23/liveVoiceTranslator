@@ -74,7 +74,7 @@ def process_audio():
         #     transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
         # else: 
         time_to_transcribe = time.time()
-        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, previousTexts, mode)
+        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, previousTexts, mode, input_lang, output_lang)
         time_to_transcribe = time.time() - time_to_transcribe
         app.logger.info(f"Transcription took {time_to_transcribe:.2f} seconds")
 
@@ -88,14 +88,15 @@ def process_audio():
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
 
-        # Translation
-        translation_start_time = time.time()
-        translated_text = translate_text(transcribed_text, input_lang, output_lang)
-        if not translated_text:
-            os.unlink(converted_audio_path)  # Clean up the converted file
-            return jsonify({"error": "Translation failed"}), 500
-        translate_time = time.time() - translation_start_time
-        app.logger.info(f"Translation took {translate_time:.2f} seconds")
+        translated_text = transcribed_text
+        # # Translation
+        # translation_start_time = time.time()
+        # translated_text = translate_text(transcribed_text, input_lang, output_lang)
+        # if not translated_text:
+        #     os.unlink(converted_audio_path)  # Clean up the converted file
+        #     return jsonify({"error": "Translation failed"}), 500
+        # translate_time = time.time() - translation_start_time
+        # app.logger.info(f"Translation took {translate_time:.2f} seconds")
 
         # Voice generation
         voice_generation_start_time = time.time()
