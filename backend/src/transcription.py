@@ -134,11 +134,13 @@ def transcribe_audio_deepgram_local(speech_file, previous_texts, mode):
 
     try:
         with open(speech_file, 'rb') as audio:
-            options = {
-                "model": "nova-2",
-                "smart_format": True
-            }
-            response = deepgram_client.transcription.pre_recorded({"buffer": audio}, options)
+            buffer_data = audio.read()
+
+        options = {
+            "model": "nova-2",
+            "smart_format": True
+        }
+        response = deepgram_client.transcription.pre_recorded({"buffer": buffer_data}, options)
         transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
         logger.info(f"Base transcription using Deepgram (local): {transcript}")
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
