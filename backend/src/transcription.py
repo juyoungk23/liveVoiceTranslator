@@ -3,7 +3,10 @@ import time
 from google.cloud import speech_v1p1beta1 as speech
 from src.audio_processing import convert_audio_to_wav, get_audio_info
 from .secret_manager import Credentials
-from deepgram import DeepgramClient, PrerecordedOptions
+from deepgram import (
+    PrerecordedOptions,
+    FileSource,
+)
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -32,6 +35,42 @@ def post_process_using_gpt(transcription_text, previous_texts, mode, gpt_model="
     except Exception as e:
         logger.error(f"Error in post-processing transcription with GPT-4: {e}", exc_info=True)
         return None
+    
+
+def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode):
+    """Transcribe audio using Deepgram API from a remote URL."""
+    deepgram_client = credentials.get_deepgram_client()
+    if not deepgram_client:
+        logger.error("Failed to load Deepgram client")
+        return None
+
+    try:
+        # STEP 1 Create a Deepgram client using the API key
+        deepgram = credentials.get_deepgram_client()
+
+        with open(AUDIO_FILE, "rb") as file:
+            buffer_data = file.read()
+
+        payload: FileSource = {
+            "buffer": buffer_data,
+        }
+
+        #STEP 2: Configure Deepgram options for audio analysis
+        options = PrerecordedOptions(
+            model="nova-2",
+            smart_format=True,
+        )
+
+        # STEP 3: Call the transcribe_file method with the text payload and options
+        response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
+        transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
+        logger.info(f"Base transcription using Deepgram (remote): {transcript}")
+        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
+        logger.info(f"Post-processed transcription using Deepgram (remote): {post_processed_text}")
+        return post_processed_text
+
+    except Exception as e:
+        print(f"Exception: {e}")
 
 def transcribe_audio_google(speech_file, language_code, previous_texts, mode, phrase_set_id="test"):
     """Transcribes audio using Google Cloud Speech-to-Text API."""
@@ -102,55 +141,4 @@ def transcribe_audio_whisper(speech_file, previous_texts, mode):
         return post_processed_text
     except Exception as e:
         logger.error(f"Error in transcribing audio with Whisper: {e}", exc_info=True)
-        return None
-
-def transcribe_audio_deepgram_remote(audio_url, previous_texts, mode):
-    """Transcribe audio using Deepgram API from a remote URL."""
-    deepgram_client = credentials.get_deepgram_client()
-    if not deepgram_client:
-        logger.error("Failed to load Deepgram client")
-        return None
-
-    try:
-        options = PrerecordedOptions(
-            model="nova-2",
-            smart_format=True,
-        )
-        response = deepgram_client.transcription.pre_recorded({"url": audio_url}, options)
-        transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
-        logger.info(f"Base transcription using Deepgram (remote): {transcript}")
-        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
-        logger.info(f"Post-processed transcription using Deepgram (remote): {post_processed_text}")
-        return post_processed_text
-    except Exception as e:
-        logger.error(f"Error in transcribing audio with Deepgram (remote): {e}", exc_info=True)
-        return None
-
-def transcribe_audio_deepgram_local(speech_file, previous_texts, mode):
-    """Transcribe audio using Deepgram API from a local file."""
-    deepgram_client = credentials.get_deepgram_client()
-    if not deepgram_client:
-        logger.error("Failed to load Deepgram client")
-        return None
-
-    try:
-        with open(speech_file, 'rb') as audio:
-            buffer_data = audio.read()
-
-        payload = {
-            "buffer": buffer_data
-        }
-
-        options = PrerecordedOptions(
-            model="nova-2",
-            smart_format=True,
-        )
-        response = deepgram_client.transcription.pre_recorded(payload, options)
-        transcript = response["results"]["channels"][0]["alternatives"][0]["transcript"]
-        logger.info(f"Base transcription using Deepgram (local): {transcript}")
-        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode)
-        logger.info(f"Post-processed transcription using Deepgram (local): {post_processed_text}")
-        return post_processed_text
-    except Exception as e:
-        logger.error(f"Error in transcribing audio with Deepgram (local): {e}", exc_info=True)
         return None
