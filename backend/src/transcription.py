@@ -22,7 +22,7 @@ def post_process_using_gpt(transcription_text, previous_texts, mode, input_lang,
         logger.error("Failed to load OpenAI client")
         return None
 
-    prompt_text = f"You are a helpful translator for a dental clinic, translating from {input_lang} to {output_lang}. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Then give your best, most accurate, most contextually aware translation you can. DO NOT reply with anything other than the final translation. You are not to give your own generated thoughts, but only verify the transcription and translate the given text. If *patient or *doctor is present, do not include it in the result text."
+    prompt_text = f"You are a helpful translator for a dental clinic. translating from {input_lang} to {output_lang}. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Then give your best, most accurate, most contextually aware translation you can. DO NOT reply with anything other than the final translation. You are not to give your own generated thoughts, but only verify the transcription and translate the given text. If *patient or *doctor is present, do not include it in the result text."
 
     messages = [{"role": "system", "content": prompt_text}] + [
         {"role": "user", "content": f"*{text['person_type']}: {text['text']}"} for text in previous_texts
@@ -60,6 +60,7 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang
         options = PrerecordedOptions(
             model="nova-2",
             smart_format=True,
+            language=input_lang,
         )
 
         # STEP 3: Call the transcribe_file method with the text payload and options
@@ -71,6 +72,9 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang
         logger.info(f"Base transcription using Deepgram (local): {transcript}")
         logger.info(f"Time to transcribe base text: {time_to_transcribe:.2f} seconds")
 
+        if not transcript:
+            logger.error("No transcription results returned from Deepgram API")
+            transcript = "No text was provided. Please try again."
         time_to_post_process = time.time()
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode, input_lang, output_lang)
         time_to_post_process = time.time() - time_to_post_process
