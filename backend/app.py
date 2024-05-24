@@ -45,9 +45,8 @@ def process_audio():
     input_lang = request.form.get('input_lang', 'en-US')
     output_lang = request.form.get('output_lang', 'es')
     voice_name = request.form.get('voice', 'Jarvis')
-    mode = request.form.get('mode', 'person2') # TODO: Change to 'patient' after testing
+    mode = request.form.get('mode', 'patient') # TODO: Change to 'patient' after testing
 
-    mode = 'doctor' if mode == 'person1' else 'patient'
 
     app.logger.info(f"RECEIVED REQUEST: \nInput language: {input_lang}, \nOutput language: {output_lang}, \nVoice: {voice_name}, \nMode: {mode}")
 
@@ -75,7 +74,7 @@ def process_audio():
         #     transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
         # else: 
         time_to_transcribe = time.time()
-        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, mode, input_lang, output_lang)
+        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, input_lang)
         time_to_transcribe = time.time() - time_to_transcribe
         app.logger.info(f"Transcription took {time_to_transcribe:.2f} seconds")
 
