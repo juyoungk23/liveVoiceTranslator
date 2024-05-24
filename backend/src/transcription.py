@@ -77,12 +77,9 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang
         if not transcript:
             logger.error("No transcription results returned from Deepgram API")
             transcript = "No text was provided. Please try again."
-        time_to_post_process = time.time()
+
         post_processed_text = post_process_using_gpt(transcript, previous_texts, mode, input_lang, output_lang)
-        time_to_post_process = time.time() - time_to_post_process
-        logger.info(f"Post-processed transcription using Deepgram (remote): {post_processed_text}")
-        logger.info(f"Time to post-process: {time_to_post_process:.2f} seconds")
-        return post_processed_text
+        return transcript
 
     except Exception as e:
         print(f"Exception: {e}")
