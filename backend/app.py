@@ -135,6 +135,7 @@ def process_audio():
         return jsonify({
             "transcribed_text": transcribed_text,
             "translated_text": translated_text,
+            "mode": mode,
             "voice_file_base64": encoded_audio
         })
 
