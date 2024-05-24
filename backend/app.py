@@ -7,7 +7,7 @@ import tempfile
 import os
 import base64
 from src import (transcribe_audio_google, transcribe_audio_whisper, transcribe_audio_deepgram_local, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
-                 convert_audio_to_wav, get_last_three_conversations, add_conversation, delete_all_conversations)
+                 convert_audio_to_wav, get_last_three_conversations, add_conversation, delete_all_conversations, post_process_using_gpt)
 
 app = Flask(__name__)
 CORS(app) 
@@ -85,13 +85,14 @@ def process_audio():
 
         add_conversation(transcribed_text, person_type=mode)
 
+
         if not transcribed_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Transcription failed"}), 500
 
         # # Translation
         translation_start_time = time.time()
-        translated_text = translate_text(transcribed_text, input_lang, output_lang)
+        translated_text = post_process_using_gpt(transcribed_text, previousTexts, mode, input_lang, output_lang)
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
