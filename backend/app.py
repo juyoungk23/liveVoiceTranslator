@@ -75,7 +75,7 @@ def process_audio():
         #     transcribed_text = transcribe_audio_whisper(converted_audio_path, previousTexts, mode)
         # else: 
         time_to_transcribe = time.time()
-        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, previousTexts, mode, input_lang, output_lang)
+        transcribed_text = transcribe_audio_deepgram_local(converted_audio_path, mode, input_lang, output_lang)
         time_to_transcribe = time.time() - time_to_transcribe
         app.logger.info(f"Transcription took {time_to_transcribe:.2f} seconds")
 
@@ -83,7 +83,7 @@ def process_audio():
         if "*doctor" in transcribed_text or "*patient" in transcribed_text or "TRANSCRIBE THE FOLLOWING TEXT =>" in transcribed_text:
             transcribed_text = transcribed_text.replace("*doctor", "").replace("*patient", "").replace("TRANSCRIBE THE FOLLOWING TEXT =>", "")
 
-        add_conversation(transcribed_text, person_type=mode)
+        # add_conversation(transcribed_text, person_type=mode)
 
 
         if not transcribed_text:
