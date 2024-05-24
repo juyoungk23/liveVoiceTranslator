@@ -20,7 +20,7 @@ def post_process_using_gpt(transcription_text, mode, input_lang, output_lang):
     client = credentials.get_openai_client()
     if not client:
         logger.error("Failed to load OpenAI client")
-        return None
+        return None    
     
     gpt_model="gpt-4o"
     previous_texts=[]
@@ -31,7 +31,7 @@ def post_process_using_gpt(transcription_text, mode, input_lang, output_lang):
     messages = [{"role": "system", "content": prompt_text}] + [
         {"role": "user", "content": f"*{text['person_type']}: {text['text']}"} for text in previous_texts
     ] + [{"role": "system", "content": f"TRANSCRIBE THE FOLLOWING TEXT => *{mode}: {transcription_text}"}]
- 
+   
     try:
         response = client.chat.completions.create(model=gpt_model, messages=messages)
         refined_transcription = response.choices[0].message.content
@@ -82,7 +82,6 @@ def transcribe_audio_deepgram_local(AUDIO_FILE, mode, input_lang, output_lang, p
             logger.error("No transcription results returned from Deepgram API")
             transcript = "No text was provided. Please try again."
 
-        post_processed_text = post_process_using_gpt(transcript, previous_texts, mode, input_lang, output_lang)
         return transcript
 
     except Exception as e:
