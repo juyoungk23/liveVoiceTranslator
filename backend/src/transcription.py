@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 
 credentials = Credentials()  # Instantiate once and use throughout
 
-def post_process_using_gpt(transcription_text, mode, input_lang, output_lang, gpt_model="gpt-4o", previous_texts=None):
+def post_process_using_gpt(transcription_text, mode, input_lang, output_lang, gpt_model="gpt-4o", previous_texts=[]):
     """Refine transcription using GPT-4."""
     client = credentials.get_openai_client()
     if not client:
