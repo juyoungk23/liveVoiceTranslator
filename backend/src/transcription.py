@@ -15,12 +15,15 @@ logger.setLevel(logging.INFO)
 
 credentials = Credentials()  # Instantiate once and use throughout
 
-def post_process_using_gpt(transcription_text, mode, input_lang, output_lang, gpt_model="gpt-4o", previous_texts=[]):
+def post_process_using_gpt(transcription_text, mode, input_lang, output_lang):
     """Refine transcription using GPT-4."""
     client = credentials.get_openai_client()
     if not client:
         logger.error("Failed to load OpenAI client")
         return None
+    
+    gpt_model="gpt-4o"
+    previous_texts=[]
 
     dental_terms = ["Invisalign", "braces", "crown", "filling", "implant", "root canal", "veneer", "whitening", "x-ray", "extraction", "fluoride", "gum disease", "orthodontist", "periodontist", "prosthodontist", "endodontist", "pedodontist", "oral surgeon", "dental hygienist", "dental assistant", "dental laboratory technician", "dental therapist", "dental technician", "dental prosthetist", "dental public health", "forensic odontology", "geriatric dentistry", "oral medicine", "oral pathology", "oral and maxillofacial radiology", "oral and maxillofacial surgery", "orthodontics and dentofacial orthopedics", "pediatric dentistry", "periodontics", "prosthodontics", "dental anatomy", "dental materials", "dental morphology", "dental occlusion", "dental plaque", "dental restoration", "dental surgery", "dental trauma", "dental caries", "dental cavities", "dental erosion", "dental fluorosis", "dental plaque", "dental calculus", "dental pulp", "dental pulp cavity", "dental pulp test", "dental radiography", "dental sealant", "dental surgery", "dental technician", "dental therapist", "dental trauma", "dental treatment", "dental x-ray", "dental abscess", "dental alveolus", "dental amalgam", "dental anatomy", "dental arch", "dental assistant", "dental attrition", "dental avulsion", "dental braces", "dental bridge", "dental calculus", "dental caries", "dental cavity", "dental cement", "dental crown", "dental cyst", "dental extraction", "dental floss", "dental fluorosis", "dental implant", "dental impression", "dental laboratory", "dental malocclusion", "dental materials", "dental morphology", "dental occlusion", "dental plaque", "dental pulp", "dental radiography", "dental restoration", "dental sealant", "dental surgery", "dental technician", "dental therapist", "dental trauma", "dental treatment", "dental x-ray", "dental abscess", "dental alveol"]
     prompt_text = f"You are a helpful translator for a dental clinic. translating from {input_lang} to {output_lang}. Review the transcription and ensure all dental terms are spelled correctly and add necessary punctuation. Then give your best, most accurate, most contextually aware translation you can. DO NOT reply with anything other than the final translation. You are not to give your own generated thoughts, but only verify the transcription and translate the given text. If *patient or *doctor is present, do not include it in the result text. Here are some common dental terms: {dental_terms}"
@@ -28,7 +31,7 @@ def post_process_using_gpt(transcription_text, mode, input_lang, output_lang, gp
     messages = [{"role": "system", "content": prompt_text}] + [
         {"role": "user", "content": f"*{text['person_type']}: {text['text']}"} for text in previous_texts
     ] + [{"role": "system", "content": f"TRANSCRIBE THE FOLLOWING TEXT => *{mode}: {transcription_text}"}]
-
+ 
     try:
         response = client.chat.completions.create(model=gpt_model, messages=messages)
         refined_transcription = response.choices[0].message.content
