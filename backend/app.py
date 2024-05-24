@@ -91,7 +91,13 @@ def process_audio():
 
         # # Translation
         translation_start_time = time.time()
-        translated_text = post_process_using_gpt(transcribed_text, mode, input_lang, output_lang, previous_texts)
+
+        if transcribed_text == "No text was provided. Please try again.":
+            translated_text = "No text was provided. Please try again."
+        else:
+            translated_text = post_process_using_gpt(transcribed_text, mode, input_lang, output_lang, previous_texts)
+
+            
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
