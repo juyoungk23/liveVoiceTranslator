@@ -39,7 +39,7 @@ def post_process_using_gpt(transcription_text, mode, input_lang, output_lang, gp
         return None
     
 
-def transcribe_audio_deepgram_local(AUDIO_FILE, previous_texts, mode, input_lang, output_lang):
+def transcribe_audio_deepgram_local(AUDIO_FILE, mode, input_lang, output_lang, previous_texts=None):
     """Transcribe audio using Deepgram API from a remote URL."""
     deepgram_client = credentials.get_deepgram_client()
     if not deepgram_client:
