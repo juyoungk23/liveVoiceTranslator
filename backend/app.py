@@ -5,6 +5,7 @@ import time
 import sys
 import tempfile
 import os
+import base64
 from src import (transcribe_audio_google, transcribe_audio_whisper, transcribe_audio_deepgram_local, translate_text, generate_voice_file_eleven_labs, generate_voice_file_openai,
                  convert_audio_to_wav, get_last_three_conversations, add_conversation, delete_all_conversations)
 
@@ -31,7 +32,6 @@ def start_new_conversation():
 
 @app.route('/process-audio', methods=['POST'])
 def process_audio():
-
     app.logger.info("#" * 100)
 
     overall_start_time = time.time()
@@ -125,11 +125,18 @@ def process_audio():
             app.logger.error("Generated voice file not found.")
             return jsonify({"error": "Generated voice file not found"}), 500
 
+        # Read and encode the audio file
+        with open(voice_file_path, "rb") as audio_file:
+            encoded_audio = base64.b64encode(audio_file.read()).decode('utf-8')
+
+        os.unlink(voice_file_path)  # Clean up the generated audio file
+
         # return both the audio as attachment and transcribed text
-        return jsonify({"transcribed_text": transcribed_text, "translated_text": translated_text, "voice_file_path": voice_file_path})
-        # return send_file(voice_file_path, as_attachment=True, mimetype='audio/mpeg')
-
-
+        return jsonify({
+            "transcribed_text": transcribed_text,
+            "translated_text": translated_text,
+            "voice_file_base64": encoded_audio
+        })
 
     except Exception as e:
         if 'temp_audio_path' in locals():
