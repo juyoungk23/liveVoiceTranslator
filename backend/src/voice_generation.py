@@ -19,12 +19,12 @@ def get_voice_id(voice, secret_id="ElevenLabsVoiceIDs"):
 
     try:
         voice_ids = json.loads(voice_ids_json)
-        return voice_ids.get(voice, voice_ids.get("Jane"))  # Fallback to "Jane" if not found
+        return voice_ids.get(voice, voice_ids.get("Jarvis"))  # Fallback to "Jarvis" if not found
     except json.JSONDecodeError as e:
         logger.error(f"Failed to decode voice IDs JSON: {e}")
         return None
 
-def generate_voice_file_openai(text, voice="alloy", model="tts-1", output_file="output_voice.mp3"):
+def generate_voice_file_openai(text, voice="onyx", model="tts-1", output_file="output_voice.mp3"):
     api_key = credentials.get_openai_api_key()  # Use centralized method to get API key
     if not api_key:
         logger.error("Failed to retrieve API key for OpenAI voice generation")

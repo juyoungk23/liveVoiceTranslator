@@ -108,8 +108,8 @@ def process_audio():
         voice_generation_start_time = time.time()
 
        
-        # voice_file_path = generate_voice_file_openai(translated_text)
-        voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
+        voice_file_path = generate_voice_file_openai(translated_text)
+        # voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
     
     
         if not voice_file_path:
