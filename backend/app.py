@@ -97,7 +97,7 @@ def process_audio():
         else:
             translated_text = post_process_using_gpt(transcribed_text, mode, input_lang, output_lang, previous_texts)
 
-            
+
         if not translated_text:
             os.unlink(converted_audio_path)  # Clean up the converted file
             return jsonify({"error": "Translation failed"}), 500
@@ -107,12 +107,9 @@ def process_audio():
         # Voice generation
         voice_generation_start_time = time.time()
 
-        # if mode == 'doctor':
-        #     voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
-        # else:
-        #     voice_file_path = generate_voice_file_openai(translated_text)
-
-        voice_file_path = generate_voice_file_openai(translated_text)
+       
+        # voice_file_path = generate_voice_file_openai(translated_text)
+        voice_file_path = generate_voice_file_eleven_labs(translated_text, voice_name)
     
     
         if not voice_file_path:
